@@ -30,7 +30,6 @@ Install to some-path:
 make
 make install
 
-
-
 You can go to test and run solve.sh to run cola on problems in Data/random/
-directory.
+directory. You may need to edit solve.sh depending on where you installed cola.
+
