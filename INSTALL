@@ -6,23 +6,31 @@ You should make sure that the following libraries can be accessed through pkg-co
 osi-clp, osi, coinutils.
 
 First you must use autotools to create configure script. You can do this by
-running 'autoreconf --install' in ./trunk
+running 'autoreconf --install'
 
 Then, configure, make and 'make install' steps should work. We install to the current
 directory by default. You can install to specific directories using --prefix
 option of configure.
 
-Example:
-cd trunk
+Create configure script:
 autoreconf --install
+
+Install to ./build:
+installs binary to ./build/bin library to ./build/lib and header files to
+./build/include
+
 mkdir build
 cd build
 ../configure
 make
 make install
 
-installs binary to ./build/bin library to ./build/lib and header files to
-./build/include
+Install to some-path:
+../configure --prefix='some-path'
+make
+make install
+
+
 
 You can go to test and run solve.sh to run cola on problems in Data/random/
 directory.
