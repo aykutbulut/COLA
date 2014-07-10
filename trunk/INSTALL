@@ -1,14 +1,20 @@
 Installation Instructions
 *************************
 
+Dependencies:
 You should make sure that the following libraries can be accessed through pkg-config;
 osi-clp, osi, coinutils.
 
-Configure, make and 'make install' steps should work. We install to the current
+First you must use autotools to create configure script. You can do this by
+running 'autoreconf --install' in ./trunk
+
+Then, configure, make and 'make install' steps should work. We install to the current
 directory by default. You can install to specific directories using --prefix
 option of configure.
 
 Example:
+cd trunk
+autoreconf --install
 mkdir build
 cd build
 ../configure
@@ -17,3 +23,6 @@ make install
 
 installs binary to ./build/bin library to ./build/lib and header files to
 ./build/include
+
+You can go to test and run solve.sh to run cola on problems in Data/random/
+directory.

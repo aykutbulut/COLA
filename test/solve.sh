@@ -3,6 +3,6 @@ do
     echo "solving " $input_file
     #echo $input_file
 
-    cola ../random/$input_file
+    cola ../Data/random/$input_file
     echo $input_file "done!"
 done
