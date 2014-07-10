@@ -1,0 +1,8 @@
+Main is the main program that solves soco problems.
+
+ConicConstraints.cpp: a class to hold conic constraints. We do not add conic
+constraints to the model but generate cuts from them when necessary.
+
+CutGenerator.cpp: generates cuts from conic constraints.
+
+ColaModel: keeps problem data.

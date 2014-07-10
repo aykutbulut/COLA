@@ -1,0 +1,24 @@
+Known issues:
+1. Generating cuts for RQUAD
+2. Producing cola.pc file
+3. Conic mps reader of Cola (uses Coinutils for this) fails on some mosek mps
+files. in BOUNDS section mosek may use redundant fields. One example is
+
+BOUNDS:
+ LI bound     x2        0
+ MI bound     x2
+
+This piece of mps file is OK for Mosek but not for Coinuitls mps file reader.
+First line means variable x2 is integer and has 0 lower bound. Second line
+means variable x2 is integer and has no bound. Mosek applies these two bounds
+together. Which means second line is redundant. Mosek can behave in this manner
+due to the hole in the specification of MPS standard.
+
+Coinutils excepts only one line specification for each variable (MPS language
+is expressive enough to acheive this). The example above can be fixed by
+removing the redundant second line. Then Coinutils will have no problem to read
+it. The following means same to both mosek and Coinutils and readible by both of
+them.
+
+BOUNDS:
+ LI bound     x2        0

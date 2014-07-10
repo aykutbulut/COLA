@@ -1,0 +1,19 @@
+Installation Instructions
+*************************
+
+You should make sure that the following libraries can be accessed through pkg-config;
+osi-clp, osi, coinutils.
+
+Configure, make and 'make install' steps should work. We install to the current
+directory by default. You can install to specific directories using --prefix
+option of configure.
+
+Example:
+mkdir build
+cd build
+../configure
+make
+make install
+
+installs binary to ./build/bin library to ./build/lib and header files to
+./build/include
