@@ -89,14 +89,8 @@ bool Separate::generate_cut(const int * cone_members,
     double p2 = p[1];
     x2 = (p2-p1)/2.0;
     double ssum = std::inner_product(p+2, p+cone_size, p+2, 0.0);
-    x1 = sqrt(x2*x2 + ssum);
-    // project xbar to RQUAD space
-    double x1_temp = x1;
-    x1 = (x1-x2)/sqrt(2.0);
-    x2 = (x1_temp+x2)/sqrt(2.0);
-    std::cout << x1 << " ";
-    x1 = ssum/(2.0*x2);
-    std::cout << x1 << std::endl;
+    x1 = (sqrt((-p1+p2)*(-p1+p2)+2.0*ssum) - (-p1+p2)) / 2.0;
+    x2 = (sqrt((-p1+p2)*(-p1+p2)+2.0*ssum) + (-p1+p2)) / 2.0;
     // measure lhs in RQUAD space
     lhs = 2.0*p1*p2-ssum;
     // generate cut from xbar
