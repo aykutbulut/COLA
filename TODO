@@ -1,5 +1,5 @@
 Known issues:
-1. Generating cuts for RQUAD
+1. Generating cuts for RQUAD, fixed.
 2. Producing cola.pc file
 3. Conic mps reader of Cola (uses Coinutils for this) fails on some mosek mps
 files. in BOUNDS section mosek may use redundant fields. One example is
