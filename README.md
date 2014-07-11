@@ -1,4 +1,4 @@
 COLA
 ====
 
-Conic Optimization with Linear Approximation
+Conic Optimization using Linear Approximation
