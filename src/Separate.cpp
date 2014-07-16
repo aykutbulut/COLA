@@ -115,7 +115,7 @@ bool Separate::generate_cut(const int * cone_members,
   // rhs is allways 0.0
   // check if we actually cut the point
   double term1 = std::inner_product(coef, coef+cone_size, p, 0.0);
-  if (term1< options_->get_dbl_option(TOL)) {
+  if (term1< -options_->get_dbl_option(TOL)) {
     throw "Generated plane does not cut point.";
   }
   Cut * cut = new Cut(coef, cone_members, 0.0, cone_size, cone_index);
