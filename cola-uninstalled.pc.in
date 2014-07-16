@@ -1,6 +1,6 @@
 prefix=@prefix@
-libdir=@COLABUILDDIR@/src
-includedir=@cola_source_dir@/src
+libdir=@prefix@/lib
+includedir=@prefix@/include
 
 Name: Cola
 Description: Second Order Cone Optimization Solver
