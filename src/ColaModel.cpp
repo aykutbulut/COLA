@@ -21,6 +21,7 @@ ColaModel::ColaModel() : cc_(NULL) {
   total_num_cuts_ = 0;
   num_supports_ = 0;
   num_cuts_ = 0;
+  num_lp_solved_ = 0;
   // this is the default beavior, user can change this using options
   setHintParam(OsiDoReducePrint,true,OsiHintTry);
   cc_ = new ConicConstraints();
@@ -32,6 +33,7 @@ ColaModel::ColaModel(char * data_file) : cc_(NULL) {
   total_num_cuts_ = 0;
   num_supports_ = 0;
   num_cuts_ = 0;
+  num_lp_solved_ = 0;
   // this is the default beavior, user can change this using options
   setHintParam(OsiDoReducePrint,true,OsiHintTry);
   cc_ = new ConicConstraints();
@@ -167,6 +169,7 @@ void ColaModel::print_stats() const {
     std::cout << "     Seperating hyperplane for cone " << std::setw(5) << i
 	      << std::setw(6) << num_cuts_[i] << std::endl;
   }
+  std::cout << "Number of LPs solved: " << num_lp_solved_ << std::endl;
 }
 
 void ColaModel::print_solution() const {
@@ -195,6 +198,7 @@ ProblemStatus ColaModel::solve() {
   }
   // ===== End Of adding nonnegativity of leading variables
   //writeMps("initial", "mps");
+  num_lp_solved_++;
   OsiClpSolverInterface::initialSolve();
   // check problem status
   problem_status();
@@ -257,6 +261,7 @@ ProblemStatus ColaModel::solve() {
 	rays.empty();
       }
       delete sep;
+      num_lp_solved_++;
       OsiClpSolverInterface::resolve();
       // update soco_status_
       problem_status();
@@ -285,6 +290,7 @@ ProblemStatus ColaModel::solve() {
       num_cuts_[(**it).cut_generating_cone()]++;
     }
     // resolve the problem
+    num_lp_solved_++;
     OsiClpSolverInterface::resolve();
     // update problem status
     problem_status();
@@ -301,7 +307,7 @@ ProblemStatus ColaModel::solve() {
   return soco_status_;
 }
 
-ConicConstraints * ColaModel::get_conic_constraints() {
+const ConicConstraints * ColaModel::get_conic_constraints() const{
   return cc_;
 }
 
@@ -328,11 +334,11 @@ void ColaModel::report_feasibility() const {
             << std::setw(15) << std::left << "lhs"
             << std::setw(15) << std::left << "lhs_real"
             << std::endl;
+  const double * full_sol = getColSolution();
   for (int i=0; i<num_cones; ++i) {
     int cone_size = cc_->cone_size(i);
     const int * members = cc_->cone_members(i);
     par_sol = new double[cone_size];
-    const double * full_sol = getColSolution();
     for (int j=0; j<cone_size; ++j) {
       par_sol[j] = full_sol[members[j]];
     }

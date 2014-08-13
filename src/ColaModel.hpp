@@ -21,6 +21,8 @@ class ColaModel: virtual public OsiClpSolverInterface {
   ConicConstraints * cc_;
   Options * options_;
   ProblemStatus soco_status_;
+  // number of times we solve lp relaxation problem
+  int num_lp_solved_;
   // number of cuts generated for each cone
   int * num_cuts_;
   // total number of cuts
@@ -56,7 +58,7 @@ public:
   void print_solution() const;
   void report_feasibility() const;
   ProblemStatus solve();
-  ConicConstraints * get_conic_constraints();
+  const ConicConstraints * get_conic_constraints() const;
   Options * options();
   // set solver
   void setSolver(OsiSolverInterface * solver);
