@@ -64,10 +64,22 @@ bool Separate::generate_cut(const int * cone_members,
     par_point[i] = point[cone_members[i]];
   }
   double * p = par_point;
+  // we want some sort of scaling of vector p with alpha.
+  // note that multiplying it with alpha will not change the support we
+  // will generate theoretically, but it will benefit us numerically
+  // for getting cuts better in terms of numerics.
+  // attempt 1, scale it to unit l_2 ball
+  double sum2n = std::inner_product(p+1, p+cone_size, p+1, 0.0);
+  double sqrt_sum = sqrt(sum2n+p[0]*p[0]);
+  double alpha = 1.0 / sqrt_sum;
+  // for (int i=0; i<cone_size; ++i) {
+  //   p[i] = alpha*p[i];
+  // }
+  // recalculate sums
+  sum2n = std::inner_product(p+1, p+cone_size, p+1, 0.0);
   if (cone_type==QUAD) {
     // set coef, lhs
-    double x1 = std::inner_product(p+1, p+cone_size, p+1, 0.0);
-    x1 = sqrt(x1);
+    double x1 = sqrt(sum2n);
     // cone is in canonical form
     for (int i=1; i<cone_size; ++i) {
       coef[i] = 2.0*p[i];
@@ -89,6 +101,15 @@ bool Separate::generate_cut(const int * cone_members,
     double p2 = p[1];
     x2 = (p2-p1)/2.0;
     double ssum = std::inner_product(p+2, p+cone_size, p+2, 0.0);
+    double sqrt_sum = sqrt(ssum+p1*p1+p2*p2);
+    double alpha = 1.0 / sqrt_sum;
+    // for (int i=0; i<cone_size; ++i) {
+    //   p[i] = alpha*p[i];
+    // }
+    p1 = p[0];
+    p2 = p[1];
+    // recalculate sums
+    ssum = std::inner_product(p+2, p+cone_size, p+2, 0.0);
     x1 = (sqrt((-p1+p2)*(-p1+p2)+2.0*ssum) - (-p1+p2)) / 2.0;
     x2 = (sqrt((-p1+p2)*(-p1+p2)+2.0*ssum) + (-p1+p2)) / 2.0;
     // improve x1 by adjusting it a little, 2x1x2-ssum=0
@@ -108,10 +129,17 @@ bool Separate::generate_cut(const int * cone_members,
     else
       std::cout << "Cone infeasibility 2x_1x_2 - x_{3:n}^T x_{3:n} is " << lhs << std::endl;
   }
+  // constraint is feasible if lhs is greater than -tol
   if (lhs > -options_->get_dbl_option(TOL)) {
     // point is feasible
     return true;
   }
+  // if sqrt_sum is close to 0, we assume we are feasible
+  if (sqrt_sum < options_->get_dbl_option(TOL)) {
+    // point is feasible
+    return true;
+  }
+
   // point is not feasible, add cut to cuts_ and return false
   // index is cone_members
   // rhs is allways 0.0

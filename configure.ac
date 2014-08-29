@@ -25,6 +25,7 @@ AC_TYPE_SIZE_T
 AC_CHECK_LIB([m], [sqrt])
 # Check dependent libraries through pkg-config
 PKG_CHECK_MODULES([OSICLP], [osi-clp >= 0.105])
+PKG_CHECK_MODULES([OSICONIC], [osiconic >= 0.0])
 PKG_CHECK_MODULES([OSI], [osi >= 0.105])
 PKG_CHECK_MODULES([COINUTILS], [coinutils >= 2.8])
 
