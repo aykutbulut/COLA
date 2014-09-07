@@ -1,26 +1,24 @@
 #include <ColaModel.hpp>
-#include <iomanip>
 
 int main(int argc, char ** argv) {
   clock_t overall_start_time = clock();
   ColaModel * model;
   model = new ColaModel();
   clock_t read_start_time = clock();
-  model->readMps(argv[1]);
+  model->read(argv[1]);
   clock_t read_duration = clock() - read_start_time;
   model->options()->set_int_option(LOG_LEVEL, 1);
   clock_t solution_start_time = clock();
-  model->initialSolve();
+  ProblemStatus s = model->solve();
   clock_t solution_duration = clock() - solution_start_time;
   clock_t overall_duration = clock() - overall_start_time;
-  ProblemStatus s = model->problem_status();
   if (s==OPTIMAL) {
     model->get_conic_constraints()->dump_cones_brief();
     //model->get_conic_constraints()->dump_cones();
     //model->print_solution();
     model->report_feasibility();
     model->print_stats();
-    std::cout << "Obj value is " << std::setprecision (15) << model->getObjValue() << std::endl;
+    std::cout << "Obj value is " << model->getObjValue() << std::endl;
     // report time
     std::cout << "Time spent on reading model (in secs) " <<
       double(read_duration) / double(CLOCKS_PER_SEC) << std::endl;

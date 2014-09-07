@@ -3,7 +3,6 @@
 
 //#include <OsiSolverInterface.hpp>
 #include <OsiClpSolverInterface.hpp>
-#include <OsiConicSolverInterface.hpp>
 #include "ConicConstraints.hpp"
 #include "Options.hpp"
 
@@ -17,8 +16,7 @@ typedef enum {
   ITERATION_LIMIT_REACHED,
 } ProblemStatus;
 
-class ColaModel: virtual public OsiConicSolverInterface,
-		 public OsiClpSolverInterface {
+class ColaModel: virtual public OsiClpSolverInterface {
   // data members
   ConicConstraints * cc_;
   Options * options_;
@@ -33,11 +31,8 @@ class ColaModel: virtual public OsiConicSolverInterface,
   int * num_supports_;
   // total number of supports
   int total_num_supports_;
-  // PRIVATE FUNCTIONS
-  // reduce conic constraint given by size and members to smaller cones, save
-  // them in reduced_cc_i
-  // num_var will store the new number of variables after reduction
-  void reduce_cone(int size, const int * members, ConicConstraints * reduced_cc_i, int & num_var);
+  // get problem status
+  ProblemStatus problem_status();
 protected:
   // get cut and support statistics
   const int * num_cuts() const;
@@ -51,43 +46,31 @@ protected:
   void set_num_supports(const int * num_supports);
   void set_total_num_cuts(int tnc);
   void set_total_num_supports(int tns);
-  ProblemStatus solve(bool resolve);
 public:
-  // get problem status
-  ProblemStatus problem_status();
   // functions
   ColaModel();
   ColaModel(char * data_file);
-  virtual ~ColaModel();
-  //void read(const char * data_file);
-  // following three is useful when we clone
-  void setConicConstraints(ConicConstraints * cc);
-  const ConicConstraints * get_conic_constraints() const;
-  void setOptions(Options * opt);
-  Options * options();
+  ColaModel * clone (bool copyData=true) const;
+  ~ColaModel();
+  // this is for reading conic mps
+  void read(const char * data_file);
   void print_stats() const;
   void print_solution() const;
   void report_feasibility() const;
-  // VIRTUAL FUNCTIONS
-  // get conic constraints
-  virtual void getConicConstraint(int index, OsiConeType & type,
-				  int & numMembers,
-				  int *& members) const;
-  // add conic constraints
-  virtual void addConicConstraint(OsiConeType type,
-				  int numMembers,
-				  const int * members);
-  virtual void removeConicConstraint(int index);
-  //ProblemStatus solve();
-  virtual int getNumCones() const;
-  virtual int readMps(const char * filename, const char * extension="mps");
+  ProblemStatus solve();
+  const ConicConstraints * get_conic_constraints() const;
+  Options * options();
+  // set solver
+  void setSolver(OsiSolverInterface * solver);
+  // set conic constraints
+  void setCC(ConicConstraints * cc);
+  // set options
+  void setOptions(Options * opt);
+  //void setColBounds (const double * lb, const double * ub);
+  // override some virtual functions
   virtual void initialSolve();
   virtual void resolve();
-  virtual OsiConicSolverInterface * clone (bool copyData=true) const;
-  // END OF VIRTUAL FUNCTIONS
-  // solves problem using ben-tal nemirovski approximation
-  // v is approximation parameter
-  ProblemStatus solve_with_bn(bool resolve, int v);
+  virtual int readMps(const char * filename, const char * extension="mps");
 };
 
 #endif

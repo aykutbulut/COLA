@@ -4,14 +4,16 @@
 #include "CoinMpsIO.hpp"
 #include "Cut.hpp"
 
+//#include <OsiMskSolverInterface.hpp>
 #include <OsiClpSolverInterface.hpp>
 #include <CoinPackedMatrix.hpp>
-#include <CoinPackedVector.hpp>
 
 #include <cstring>
 #include <iomanip>
 #include <numeric>
 #include <cmath>
+
+#define TINY_EPS 1e-15
 
 ColaModel::ColaModel() : cc_(NULL) {
   options_ = new Options();
@@ -35,20 +37,23 @@ ColaModel::ColaModel(char * data_file) : cc_(NULL) {
   // this is the default beavior, user can change this using options
   setHintParam(OsiDoReducePrint,true,OsiHintTry);
   cc_ = new ConicConstraints();
-  OsiConicSolverInterface::readMps(data_file);
+  read(data_file);
 }
 
 // overrite clone function of OsiClpSolverInterface
-// todo(aykut) provide copy constructor for ColaModel
-OsiConicSolverInterface * ColaModel::clone (bool copyData) const {
-  ColaModel * new_solver;
-  if (copyData) {
-    new_solver = new ColaModel(*this);
-  }
-  else {
-    new_solver = new ColaModel();
-  }
-  return new_solver;
+ColaModel * ColaModel::clone (bool copyData) const {
+  ColaModel * new_model = new ColaModel();
+  // copy solver
+  // copy conic constraints
+  new_model->setCC(cc_->clone());
+  // copy options
+  new_model->setOptions(options_->clone());
+  // set cut and support statistics
+  new_model->set_num_cuts(num_cuts_);
+  new_model->set_num_supports(num_supports_);
+  new_model->set_total_num_cuts(total_num_cuts_);
+  new_model->set_total_num_supports(total_num_supports_);
+  return new_model;
 }
 
 ColaModel::~ColaModel() {
@@ -61,32 +66,91 @@ ColaModel::~ColaModel() {
   }
 }
 
-
-void ColaModel::addConicConstraint(OsiConeType type,
-				  int numMembers,
-				   const int * members) {
-  ConeType t;
-  if (type==OSI_QUAD)
-    t = QUAD;
-  else
-    t = RQUAD;
-  cc_-> add_cone(numMembers, members, t);
-}
-
 // this read uses coinutils, ie coiniomps. Thanks to it  we do not need mosek
 // to read conic problems, and now we can use CLP to solve our LP problems.
 // this function is based on readconic.cpp example in Osi.
-// void ColaModel::read(const char * data_file) {
-//   readMps(data_file);
-//   // allocate memory for cut and support statistics
-//   int nOfCones = getNumCones();
-//   num_cuts_ = new int[nOfCones]();
-//   num_supports_ = new int[nOfCones]();
-// }
-
-int ColaModel::readMps(const char * filename, const char * extension) {
-  OsiConicSolverInterface::readMps(filename, extension);
-  int nOfCones = getNumCones();
+void ColaModel::read(const char * data_file) {
+  CoinMpsIO m_MpsData;
+  int nOfSOS;
+  CoinSet ** SOS = NULL;
+  int status = m_MpsData.readMps(data_file, "", nOfSOS, SOS );
+  if (nOfSOS) {
+    throw "Input file has SOS section!";
+  }
+  delete [] SOS;
+  assert (!status);
+  int nOfCones;
+  int * coneStart = NULL;
+  int * coneIdx = NULL;
+  int * coneType = NULL;
+  status = m_MpsData.readConicMps(NULL, coneStart, coneIdx, coneType, nOfCones);
+  assert (!status);
+  int * members;
+  for (int i=0; i<nOfCones; ++i) {
+    if (coneType[i]!=1 and coneType[i]!=2) {
+      throw "Invalid cone type!";
+    }
+    int num_members = coneStart[i+1]-coneStart[i];
+    if (coneType[i]==2 and num_members<3) {
+      throw "Rotated cones should have at least 3 members!";
+    }
+    // get members
+    members = new int[num_members];
+    int k=0;
+    for (int j=coneStart[i]; j<coneStart[i+1]; ++j) {
+      members[k] = coneIdx[j];
+      k++;
+    }
+    ConeType type;
+    if (coneType[i]==1) {
+      type = QUAD;
+    }
+    else if (coneType[i]==2) {
+      type = RQUAD;
+    }
+    cc_-> add_cone(num_members, members, type);
+    delete[] members;
+  }
+  // check log level and print ccordingly
+  if (nOfCones) {
+    printf("Conic section has %d cones\n",nOfCones);
+    for (int iCone=0;iCone<nOfCones;iCone++) {
+      printf("Cone %d has %d entries (type %d) ",iCone,coneStart[iCone+1]-coneStart[iCone],
+	     coneType[iCone]);
+      for (int j=coneStart[iCone];j<coneStart[iCone+1];j++)
+	printf("%d ",coneIdx[j]);
+      printf("\n");
+    }
+  }
+  delete [] coneStart;
+  delete [] coneIdx;
+  delete [] coneType;
+  // load problem
+  const CoinPackedMatrix * matrix = m_MpsData.getMatrixByCol();
+  const double * collb = m_MpsData.getColLower();
+  const double * colub = m_MpsData.getColUpper();
+  const double * obj = m_MpsData.getObjCoefficients();
+  const double * rowlb = m_MpsData.getRowLower();
+  const double * rowub = m_MpsData.getRowUpper();
+  loadProblem(*matrix, collb, colub, obj, rowlb, rowub);
+  // set row and column names
+  // todo(aykut) names are assumed to be less than 255 characters
+  int name_len = 255;
+  int numcols=m_MpsData.getNumCols();
+  int numrows=m_MpsData.getNumRows();
+  for (int i=0; i<numrows; ++i) {
+    setRowName(i, m_MpsData.rowName(i));
+  }
+  for (int i=0; i<numcols; ++i) {
+    setColName(i, m_MpsData.columnName(i));
+  }
+  // set variable types
+  for (int i=0; i<numcols; ++i) {
+    if (m_MpsData.isInteger(i)) {
+      setInteger(i);
+    }
+  }
+  // allocate memory for cut and support statistics
   num_cuts_ = new int[nOfCones]();
   num_supports_ = new int[nOfCones]();
 }
@@ -117,7 +181,7 @@ void ColaModel::print_solution() const {
   std::cout << "Objective Value " << getObjValue() << std::endl;
 }
 
-ProblemStatus ColaModel::solve(bool resolve) {
+ProblemStatus ColaModel::solve() {
   // solve linear problem
   bool feasible = false;
   Separate * sep;
@@ -135,14 +199,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
   // ===== End Of adding nonnegativity of leading variables
   //writeMps("initial", "mps");
   num_lp_solved_++;
-  if (resolve==false) {
-    // if this function is called from OsiConicSolverInterface::initialSolve then
-    OsiClpSolverInterface::initialSolve();
-  }
-  else {
-    // if it is called from OsiConicSolverInterface::resolve
-    OsiClpSolverInterface::resolve();
-  }
+  OsiClpSolverInterface::initialSolve();
   // check problem status
   problem_status();
   if ((soco_status_!=OPTIMAL) && (soco_status_!=DUAL_INFEASIBLE))
@@ -156,29 +213,30 @@ ProblemStatus ColaModel::solve(bool resolve) {
       " supporting hyperplanes to resolve..."
 	      << std::endl;
     while (soco_status_==DUAL_INFEASIBLE) {
-      // check if primal is infeasible, then the problem is infeasible
-      if (isProvenPrimalInfeasible()) {
-	// Both LP primal and dual is infeasible, conic problem is infeasible
-	std::cout << "Cola: Conic problem is infeasible."
-		  << std::endl
-		  << "Cola: Terminating...";
-      }
       // get one ray
       // todo(aykut) for now we get only one ray
       std::vector<double*> rays = getPrimalRays(1);
       const double * vec = 0;
       if (!rays.empty() and rays[0]!=0) {
-       	vec = rays[0];
+	vec = rays[0];
       }
       else {
-	std::cout << "Cola: Warning! "
-		  << "LP is dual infeasible but solver did not return a "
-	  "direction of unboundedness." << std::endl
-		  << "Cola: Trying to generate supports using objective "
-	  "function coefficients..." << std::endl;
-	vec = getObjCoefficients();
+	// check if primal is infeasible, then the problem is infeasible
+	if (isProvenPrimalInfeasible()) {
+	  std::cout << "Cola: Both LP primal and dual is infeasible."
+		    << "Cola: This means cone problem is infeasible."
+		    << std::endl
+		    << "Cola: Terminating...";
+	}
+	else {
+	  std::cout << "Cola: Warning! "
+		    << "LP is dual infeasible but solver did not return a "
+	    "direction of unboundedness." << std::endl
+		    << "Cola: Trying to generate supports using objective "
+	    "function coefficients..." << std::endl;
+	  vec = getObjCoefficients();
+	}
       }
-      writeMps("bug");
       sep = new Separate(cc_, vec, getNumCols(), options_);
       // returns true if direction is feasible for all cones.
       feasible = sep->is_feasible();
@@ -199,8 +257,8 @@ ProblemStatus ColaModel::solve(bool resolve) {
       }
       // todo(aykut) delete all rays not just first one.
       if (!rays.empty()) {
-      	delete[] rays[0];
-       	rays.empty();
+	delete[] rays[0];
+	rays.empty();
       }
       delete sep;
       num_lp_solved_++;
@@ -258,7 +316,7 @@ Options * ColaModel::options() {
 }
 
 
-void ColaModel::setConicConstraints(ConicConstraints * cc) {
+void ColaModel::setCC(ConicConstraints * cc) {
   cc_ = cc;
 }
 
@@ -304,11 +362,16 @@ void ColaModel::report_feasibility() const {
 }
 
 void ColaModel::initialSolve() {
-  solve(false);
+  solve();
 }
 
 void ColaModel::resolve() {
-  solve(true);
+  solve();
+}
+
+int ColaModel::readMps(const char * filename, const char * extension) {
+  read(filename);
+  return 0;
 }
 
 // returns problem status and updates status_
@@ -380,140 +443,3 @@ void ColaModel::set_total_num_supports(int tns) {
   total_num_supports_ = tns;
 }
 
-int ColaModel::getNumCones() const {
-  int nc = cc_->num_cones();
-  return nc;
-}
-
-void ColaModel::getConicConstraint(int index, OsiConeType & type,
-				   int & numMembers,
-				   int *& members) const {
-  ConeType t = cc_->type(index);
-  if (t==QUAD)
-    type = OSI_QUAD;
-  else
-    type = OSI_RQUAD;
-  numMembers = cc_->cone_size(index);
-  int nc = cc_->num_cones();
-  members = new int[nc];
-  const int * m = cc_->cone_members(index);
-  std::copy(m, m+nc, members);
-}
-
-void ColaModel::removeConicConstraint(int index) {
-  cc_->remove_cone(index);
-}
-
-// solves problem using ben-tal nemirovski approximation
-// v is approximation parameter
-// resolve is false, then solve from scratch
-// resolve is true, use Clp's resolve.
-ProblemStatus ColaModel::solve_with_bn(bool resolve, int v) {
-  // if we have rotated cones bail out,
-
-
-  // create approximation
-  // = first reduce all cones to 3 dimensional cones.
-  // conic constraints obtained by reducing cone i
-  ConicConstraints * reduced_cc_i = new ConicConstraints();
-  // set of conic constraints we get by reducing all cones of original problem
-  ConicConstraints * reduced_cc = new ConicConstraints();
-  int num_cones = cc_->num_cones();
-  int num_var = getNumCols();
-  for (int i=0; i<num_cones; ++i) {
-    if (cc_->cone_size(i)<=3) {
-      continue;
-    }
-    // reduce conic constraint i to smaller cones, save them in reduced_cc_i
-    reduce_cone (cc_->cone_size(i), cc_->cone_members(i),
-		 reduced_cc_i, num_var);
-    // add new cones to problem
-    int num_cones_i = reduced_cc_i->num_cones();
-    for (int j=0; j<num_cones_i; ++j) {
-      reduced_cc->add_cone(reduced_cc_i->cone_size(j),
-			   reduced_cc_i->cone_members(j),
-			   reduced_cc_i->type(j));
-    }
-    // reset reduced_cc_i
-    reduced_cc_i->reset();
-  }
-  // print new cones of the problem
-  reduced_cc->dump_cones();
-  // = add new variables to the model
-  int diff = num_var - getNumCols();
-  double infinity = getInfinity();
-  for(int i=0; i<diff; ++i) {
-    addCol(0, NULL, NULL, 0.0, infinity, 0.0);
-  }
-  // int num_rows = getNumRows();
-  // int diff = num_var - getNumCols();
-  // double * collb = new double[diff]();
-  // double * colub = new double[diff]();
-  // double * obj = new double[diff]();
-  // double infinity = getInfinity();
-  // std::fill(colub, colub+diff, infinity);
-  // CoinPackedVectorBase ** cols = 0;
-  // cols = new CoinPackedVectorBase*[diff];
-  // int * inds = 0;
-  // for (int i=0; i<diff; ++i) {
-  //   cols[i] = new CoinPackedVector(num_rows, inds, 0.0);
-  // }
-  // addCols(diff, cols, collb, colub, obj);
-  // std::cout << "Num Cols: " << getNumCols();
-  // delete[] collb;
-  // delete[] colub;
-  // delete[] obj;
-  writeMps("reduced", "mps");
-  setConicConstraints(reduced_cc);
-  int nOfCones = getNumCones();
-  if (num_cuts_!=0) {
-    delete[] num_cuts_;
-  }
-  if (num_supports_!=0) {
-    delete num_supports_;
-  }
-  num_cuts_ = new int[nOfCones]();
-  num_supports_ = new int[nOfCones]();
-  solve(resolve);
-  // set columns for new variables to 0
-}
-
-// this function assumes cone is in canonical form.
-void ColaModel::reduce_cone(int size, const int * members,
-			    ConicConstraints * reduced_cc_i, int & num_var) {
-  // k is
-  if (size<=3) {
-    // add current cone and return
-    reduced_cc_i->add_cone(size, members, QUAD);
-    return;
-  }
-  int k = size/2;
-  int * nm = new int[3];
-  for (int i=0; i<k-1; ++i) {
-    nm[0] = num_var+i;
-    nm[1] = members[2*i+1];
-    nm[2] = members[2*i+2];
-    reduced_cc_i->add_cone(3, nm, QUAD);
-  }
-  // check if the last cone has 3 or 2 members
-  if (2*k==size) {
-    nm[0] = num_var+k-1;
-    nm[1] = members[size-1];
-    reduced_cc_i->add_cone(2, nm, QUAD);
-  }
-  else {
-    nm[0] = num_var+k-1;
-    nm[1] = members[size-2];
-    nm[2] = members[size-1];
-    reduced_cc_i->add_cone(3, nm, QUAD);
-  }
-  // reduce cone of new variables
-  int new_cone[k+1];
-  new_cone[0] = members[0];
-  for (int i=1; i<k+1; ++i) {
-    new_cone[i] = num_var+i-1;
-  }
-  num_var = num_var+k;
-  // recursive call for reducing the new cone.
-  reduce_cone(k+1, new_cone, reduced_cc_i, num_var);
-}

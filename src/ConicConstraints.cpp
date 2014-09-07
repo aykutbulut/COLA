@@ -51,7 +51,7 @@ void ConicConstraints::dump_cones() const {
               << std::setw(10) << members_[i][0]
               << std::endl;
     for (int j=1; j<num_members_[i]; ++j) {
-      std::cout << std::setw(40) << members_[i][j] << std::endl;
+      std::cout << std::setw(30) << members_[i][j] << std::endl;
     }
   }
 }
@@ -83,20 +83,4 @@ const int * ConicConstraints::cone_members(int i) const {
 
 ConeType ConicConstraints::type(int i) const {
   return type_[i];
-}
-
-void ConicConstraints::remove_cone(int i) {
-  if (i>=num_cones_) {
-    throw ConeDoesNotExist();
-  }
-  num_members_.erase(num_members_.begin()+i);
-  members_.erase(members_.begin()+i);
-  type_.erase(type_.begin()+i);
-}
-
-void ConicConstraints::reset() {
-  num_cones_ = 0;
-  num_members_.empty();
-  members_.empty();
-  type_.empty();
 }
