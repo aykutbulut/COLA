@@ -12,6 +12,8 @@ typedef enum {
 class EmptyCone: std::exception {
 };
 
+class ConeDoesNotExist: std::exception {
+};
 
 class ConicConstraints {
   int num_cones_;
@@ -31,6 +33,9 @@ public:
   int cone_size(int i) const;
   const int  * cone_members(int i) const;
   ConeType type(int i) const;
+  void remove_cone(int i);
+  // reset data
+  void reset();
 };
 
 #endif

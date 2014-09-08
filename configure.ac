@@ -1,5 +1,5 @@
-AC_PREREQ([2.67])
-AC_INIT([cola], [0.0], [aykut@lehigh.edu])
+AC_PREREQ([2.69])
+AC_INIT([cola], [0.1], [aykut@lehigh.edu])
 AC_CONFIG_SRCDIR([config.h.in])
 AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_CONFIG_HEADERS([config.h])
@@ -24,6 +24,7 @@ AC_TYPE_SIZE_T
 # Check dependent libraries
 AC_CHECK_LIB([m], [sqrt])
 # Check dependent libraries through pkg-config
+PKG_CHECK_MODULES([OSICONIC], [osiconic >= 0.0])
 PKG_CHECK_MODULES([OSICLP], [osi-clp >= 0.105])
 PKG_CHECK_MODULES([OSI], [osi >= 0.105])
 PKG_CHECK_MODULES([COINUTILS], [coinutils >= 2.8])
@@ -32,4 +33,5 @@ AC_CONFIG_FILES([Makefile
 	src/Makefile
 	cola.pc
 	cola-uninstalled.pc])
+
 AC_OUTPUT

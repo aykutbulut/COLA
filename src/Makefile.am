@@ -13,6 +13,7 @@ libCola_la_SOURCES=ConicConstraints.hpp\
 
 libCola_la_LIBADD=\
 	$(OSICLP_LIBS)\
+	$(OSICONIC_LIBS)\
 	$(OSI_LIBS)\
 	$(COINUTILS_LIBS)\
 	$(LIBS)
@@ -27,6 +28,7 @@ cola_LDADD=\
 AM_CPPFLAGS=\
 	-I../../include\
 	$(OSICLP_CFLAGS)\
+	$(OSICONIC_CFLAGS)\
 	$(OSI_CFLAGS)\
 	$(CLP_CFLAGS)\
 	$(COINUTILS_CFLAGS)
