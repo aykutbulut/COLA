@@ -91,6 +91,7 @@ ColaModel & ColaModel::operator=(const ColaModel & rhs) {
   std::copy(rhs.num_supports(), rhs.num_supports() + numCones,
 	    num_supports_);
   total_num_supports_ = rhs.total_num_supports();
+  return *this;
 }
 
 // overrite clone function of OsiConicSolverInterface
