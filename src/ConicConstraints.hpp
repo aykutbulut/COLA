@@ -21,7 +21,10 @@ class ConicConstraints {
   std::vector<int *> members_;
   std::vector<ConeType> type_;
 public:
+  // default constructor, creates emty constraint set
   ConicConstraints();
+  // copy constructor
+  // copy assignment operator
   // returns a clone of this
   ConicConstraints * clone() const;
   ~ConicConstraints();

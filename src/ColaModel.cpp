@@ -13,7 +13,7 @@
 #include <numeric>
 #include <cmath>
 
-ColaModel::ColaModel() : cc_(NULL) {
+ColaModel::ColaModel() : cc_(NULL), OsiClpSolverInterface() {
   options_ = new Options();
   total_num_supports_ = 0;
   total_num_cuts_ = 0;
@@ -23,9 +23,11 @@ ColaModel::ColaModel() : cc_(NULL) {
   // this is the default beavior, user can change this using options
   setHintParam(OsiDoReducePrint,true,OsiHintTry);
   cc_ = new ConicConstraints();
+  // for unboundedness directions set option
+  OsiClpSolverInterface::getModelPtr()->setMoreSpecialOptions(0);
 }
 
-ColaModel::ColaModel(char * data_file) : cc_(NULL) {
+ColaModel::ColaModel(char * data_file) : cc_(NULL), OsiClpSolverInterface() {
   options_ = new Options();
   total_num_supports_ = 0;
   total_num_cuts_ = 0;
@@ -36,10 +38,62 @@ ColaModel::ColaModel(char * data_file) : cc_(NULL) {
   setHintParam(OsiDoReducePrint,true,OsiHintTry);
   cc_ = new ConicConstraints();
   OsiConicSolverInterface::readMps(data_file);
+  OsiClpSolverInterface::getModelPtr()->setMoreSpecialOptions(0);
 }
 
-// overrite clone function of OsiClpSolverInterface
-// todo(aykut) provide copy constructor for ColaModel
+// copy constructor
+ColaModel::ColaModel(const ColaModel & other): OsiClpSolverInterface(other) {
+  // copy conic constraints
+  cc_ = other.get_conic_constraints()->clone();
+  // copy options
+  options_ = other.options()->clone();
+  // copy problem status
+  soco_status_ = other.problem_status();
+  // copy number of lp solved
+  num_lp_solved_ = other.num_lp_solved();
+  // copy number of cuts generated
+  int numCones = other.getNumCones();
+  num_cuts_ = new int[numCones]();
+  std::copy(other.num_cuts(), other.num_cuts()+numCones, num_cuts_);
+  total_num_cuts_ = other.total_num_cuts();
+  // copy number of supports
+  num_supports_ = new int[numCones]();
+  std::copy(other.num_supports(), other.num_supports() + numCones,
+	    num_supports_);
+  total_num_supports_ = other.total_num_supports();
+}
+
+// copy assignment operator
+ColaModel & ColaModel::operator=(const ColaModel & rhs) {
+  // copy conic constraints
+  if (cc_)
+    delete cc_;
+  cc_ = rhs.get_conic_constraints()->clone();
+  // copy options
+  if (options_)
+    delete options_;
+  options_ = rhs.options()->clone();
+  // copy problem status
+  soco_status_ = rhs.problem_status();
+  // copy number of lp solved
+  num_lp_solved_ = rhs.num_lp_solved();
+  int numCones = rhs.getNumCones();
+  // copy number of cuts generated
+  if (num_cuts_)
+    delete num_cuts_;
+  num_cuts_ = new int[numCones]();
+  std::copy(rhs.num_cuts(), rhs.num_cuts()+numCones, num_cuts_);
+  total_num_cuts_ = rhs.total_num_cuts();
+  // copy number of supports
+  if (num_supports_)
+    delete num_supports_;
+  num_supports_ = new int[numCones]();
+  std::copy(rhs.num_supports(), rhs.num_supports() + numCones,
+	    num_supports_);
+  total_num_supports_ = rhs.total_num_supports();
+}
+
+// overrite clone function of OsiConicSolverInterface
 OsiConicSolverInterface * ColaModel::clone (bool copyData) const {
   ColaModel * new_solver;
   if (copyData) {
@@ -144,7 +198,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
     OsiClpSolverInterface::resolve();
   }
   // check problem status
-  problem_status();
+  update_problem_status();
   if ((soco_status_!=OPTIMAL) && (soco_status_!=DUAL_INFEASIBLE))
     return soco_status_;
   // if problem is unbounded add supporting hyperplanes for each cone using
@@ -163,28 +217,36 @@ ProblemStatus ColaModel::solve(bool resolve) {
 		  << std::endl
 		  << "Cola: Terminating...";
       }
+
       // get one ray
       // todo(aykut) for now we get only one ray
       std::vector<double*> rays = getPrimalRays(1);
       const double * vec = 0;
       if (!rays.empty() and rays[0]!=0) {
-       	vec = rays[0];
+	vec = rays[0];
       }
       else {
 	std::cout << "Cola: Warning! "
-		  << "LP is dual infeasible but solver did not return a "
+		  << "LP is unbounded but solver did not return a "
 	  "direction of unboundedness." << std::endl
 		  << "Cola: Trying to generate supports using objective "
 	  "function coefficients..." << std::endl;
 	vec = getObjCoefficients();
       }
-      writeMps("bug");
+      // PRINT UNBDDNESS DIRECTION
+      std::cout << "Unboundedness direction is " << std::endl  << "[";
+      for (int i=0; i<getNumCols(); ++i) {
+	std::cout << std::setw(10) << vec[i] << "; ";
+      }
+      std::cout << "]" << std::endl;
+      // END OF DIRECTION PRINT
       sep = new Separate(cc_, vec, getNumCols(), options_);
       // returns true if direction is feasible for all cones.
       feasible = sep->is_feasible();
       if (feasible) {
 	// primal ray is feasible for all cone constraints,
 	// problem is unbounded
+	delete sep;
 	return DUAL_INFEASIBLE;
       }
       else {
@@ -193,20 +255,28 @@ ProblemStatus ColaModel::solve(bool resolve) {
 	for(it=sep->cuts()->begin(); it!=sep->cuts()->end(); ++it) {
 	  addRow((**it).size(), (**it).index(), (**it).coef(),
 			  -getInfinity(), (**it).rhs());
+	  // PRINT CUT
+	  std::cout << "Cut " << std::endl  << "[";
+	  for (int i=0; i<getNumCols(); ++i) {
+	    std::cout << std::setw(10) << (**it).coef()[i] << "; ";
+	  }
+	  std::cout << "]" << std::endl;
+	  // END OF CUT PRINT
 	  total_num_supports_++;
 	  num_supports_[(*it)->cut_generating_cone()]++;
 	}
       }
       // todo(aykut) delete all rays not just first one.
       if (!rays.empty()) {
-      	delete[] rays[0];
-       	rays.empty();
+	for(int i=0; i<rays.size(); ++i)
+	  delete[] rays[i];
+       	rays.clear();
       }
       delete sep;
       num_lp_solved_++;
       OsiClpSolverInterface::resolve();
       // update soco_status_
-      problem_status();
+      update_problem_status();
     }
   }
   // it means it is not optimal after resolving unbounded directions
@@ -235,7 +305,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
     num_lp_solved_++;
     OsiClpSolverInterface::resolve();
     // update problem status
-    problem_status();
+    update_problem_status();
     // check problem status
     if (soco_status_!=OPTIMAL)
       break;
@@ -245,7 +315,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
     feasible = sep->is_feasible();
   }
   // update problem status
-  problem_status();
+  update_problem_status();
   return soco_status_;
 }
 
@@ -253,7 +323,7 @@ const ConicConstraints * ColaModel::get_conic_constraints() const{
   return cc_;
 }
 
-Options * ColaModel::options() {
+Options * ColaModel::options() const {
   return options_;
 }
 
@@ -312,7 +382,7 @@ void ColaModel::resolve() {
 }
 
 // returns problem status and updates status_
-ProblemStatus ColaModel::problem_status() {
+ProblemStatus ColaModel::update_problem_status() {
   if (isAbandoned()) {
     soco_status_ = ABANDONED;
   }
@@ -604,4 +674,12 @@ void ColaModel::reduce_cone(int size, const int * members,
   num_var = num_var+k;
   // recursive call for reducing the new cone.
   reduce_cone(k+1, new_cone, reduced_cc_i, num_var);
+}
+
+int ColaModel::num_lp_solved() const {
+  return num_lp_solved_;
+}
+
+ProblemStatus ColaModel::problem_status() const {
+  return soco_status_;
 }

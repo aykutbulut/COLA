@@ -53,21 +53,31 @@ protected:
   void set_total_num_supports(int tns);
   ProblemStatus solve(bool resolve);
 public:
-  // get problem status
-  ProblemStatus problem_status();
-  // functions
+  // default constructor
   ColaModel();
+  // constructor that reads mps file
   ColaModel(char * data_file);
+  // copy constructor
+  ColaModel(const ColaModel & other);
+  // copy assignment operator
+  ColaModel & operator=(const ColaModel & rhs);
+  // destructor
   virtual ~ColaModel();
+  // update and return problem status
+  ProblemStatus update_problem_status();
+  // return problem status;
+  ProblemStatus problem_status() const;
+  // functions
   //void read(const char * data_file);
   // following three is useful when we clone
   void setConicConstraints(ConicConstraints * cc);
   const ConicConstraints * get_conic_constraints() const;
   void setOptions(Options * opt);
-  Options * options();
+  Options * options() const;
   void print_stats() const;
   void print_solution() const;
   void report_feasibility() const;
+  int num_lp_solved() const;
   // VIRTUAL FUNCTIONS
   // get conic constraints
   virtual void getConicConstraint(int index, OsiConeType & type,
