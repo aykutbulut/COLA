@@ -465,10 +465,10 @@ void ColaModel::getConicConstraint(int index, OsiConeType & type,
   else
     type = OSI_RQUAD;
   numMembers = cc_->cone_size(index);
-  int nc = cc_->num_cones();
-  members = new int[nc];
+  //int nc = cc_->num_cones();
+  members = new int[numMembers];
   const int * m = cc_->cone_members(index);
-  std::copy(m, m+nc, members);
+  std::copy(m, m+numMembers, members);
 }
 
 void ColaModel::removeConicConstraint(int index) {

@@ -6,6 +6,6 @@ Name: Cola
 Description: Second Order Cone Optimization Solver
 URL: https://github.com/aykutbulut/Cola
 Version: @PACKAGE_VERSION@
-Requires: osi-clp osi clp coinutils
+Requires: osiconic osi-clp osi clp coinutils
 Libs: -L${libdir} -lCola
 Cflags: -I${includedir}

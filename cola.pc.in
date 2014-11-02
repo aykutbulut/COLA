@@ -9,4 +9,4 @@ URL: https://github.com/aykutbulut/Cola
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lCola
 Cflags: -I${includedir}
-Requires: osi-clp osi coinutils
+Requires: osiconic osi-clp osi coinutils
