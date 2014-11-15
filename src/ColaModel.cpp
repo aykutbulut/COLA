@@ -473,6 +473,7 @@ void ColaModel::getConicConstraint(int index, OsiConeType & type,
 
 void ColaModel::removeConicConstraint(int index) {
   cc_->remove_cone(index);
+  //num_cones_ = cc_->num_cones();
 }
 
 // first reduces all conic constraints to 3 dimentional second order conic

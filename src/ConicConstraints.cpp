@@ -92,6 +92,7 @@ void ConicConstraints::remove_cone(int i) {
   num_members_.erase(num_members_.begin()+i);
   members_.erase(members_.begin()+i);
   type_.erase(type_.begin()+i);
+  num_cones_--;
 }
 
 void ConicConstraints::reset() {
