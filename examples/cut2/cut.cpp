@@ -320,8 +320,10 @@ OsiConicCuts * MIR_cut(OsiConicSolverInterface * si) {
   }
   // determine row corresponding to basic variable ind
   for (int i=0; i<num_basic; ++i) {
-    if (ind==B_index[i])
+    if (ind==B_index[i]) {
       ind=i;
+      break;
+    }
   }
   // ==== decide basic variable we will replace, choose first available
   // retreive ind related tableau information to be used.
