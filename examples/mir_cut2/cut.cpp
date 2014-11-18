@@ -235,6 +235,7 @@ void print1(OsiConicSolverInterface * si) {
 // num_cols to num_cols+num_rows-1 correspond to slack variables.
 
 OsiConicCuts * MIR_cut(OsiConicSolverInterface * si) {
+  si->writeMps("mir_before_cut");
   OsiConicCuts * cuts = new OsiConicCuts();
   // Get current basis status, if cstat==1 then basic
   int num_rows = si->getNumRows();
@@ -299,7 +300,7 @@ OsiConicCuts * MIR_cut(OsiConicSolverInterface * si) {
   int ind = -1;
   for (int i=1; i<cut_cone_size; ++i) {
     if (B_set.find(cut_cone_members[i])!=B_set.end()) {
-      ind = i;
+      ind = cut_cone_members[i];
       break;
     }
   }
@@ -374,6 +375,8 @@ OsiConicCuts * MIR_cut(OsiConicSolverInterface * si) {
     throw "";
   }
   double BInvRhs_i = std::inner_product(rhs, rhs+num_rows, BInv_i, 0.0);
+  std::cout << "BInvRhs_i: " << std::endl;
+  std::cout << BInvRhs_i << std::endl;
   // add slack variables s_N. we do this since we can not insert a row to the
   // simplex tableau directly. We add new cols that correspond to s_N
   // and rows that defines s_N
@@ -471,7 +474,7 @@ OsiConicCuts * MIR_cut(OsiConicSolverInterface * si) {
   e3[num_nonbasic] = num_cols+num_sN;
   double * v3 = new double[num_nonbasic+1];
   for (int i=0; i<num_xN; ++i) {
-    if (xN_int_set.find(xN[i])==xN_int_set.end()) {
+    if (xN_int_set.find(xN[i])!=xN_int_set.end()) {
       v3[i] = phi(-BInvN_x_i[i]/alpha, f_alpha);
     }
     else {
@@ -485,8 +488,6 @@ OsiConicCuts * MIR_cut(OsiConicSolverInterface * si) {
   double phi_b_over_alpha = phi(b_over_alpha, f_alpha);
   // add mir cut itself
   si->addRow(num_nonbasic+1, e3, v3, -si->getInfinity(), phi_b_over_alpha);
-  delete[] e3;
-  delete[] v3;
   delete[] B_index;
   delete[] xB;
   delete[] xN;
@@ -507,9 +508,24 @@ OsiConicCuts * MIR_cut(OsiConicSolverInterface * si) {
   // resolve
   double old_obj = si->getObjValue();
   std::cout << "Before cut: " << std::setprecision(10) << old_obj <<std::endl;
-  si->resolve();
+  // print cut
+  std::cout << "Cut: " << std::endl;
+  std::cout << "Members: ";
+  for (int i=0; i<num_nonbasic+1; ++i) {
+    std::cout << std::setw(WIDTH) << e3[i];
+  }
+  std::cout << std::endl;
+  std::cout << "Values:  ";
+  for (int i=0; i<num_nonbasic+1; ++i) {
+    std::cout << std::setw(WIDTH) << v3[i];
+  }
+  std::cout << "     >= " << phi_b_over_alpha << std::endl;
+  delete[] e3;
+  delete[] v3;
+
   // write mps file
   si->writeMps("mir_after_cut");
+  si->resolve();
   std::cout << "After cut: " << si->getObjValue() << std::endl;
   return cuts;
 }

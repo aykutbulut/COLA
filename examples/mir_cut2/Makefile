@@ -21,4 +21,4 @@ clean:
 	rm *.o $(PROGNAME)
 
 test: $(PROGNAME)
-	./$(PROGNAME) mir_example.mps
+	./$(PROGNAME) mir2.mps
