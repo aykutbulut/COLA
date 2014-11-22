@@ -343,10 +343,11 @@ void ColaModel::report_feasibility() const {
   double lhs = 0.0;
   double lhs_real = 0.0;
   std::cout << "Conic Constraints feasibility report" << std::endl;
-  std::cout << std::setw(5) << std::left << "Cone"
-            << std::setw(15) << std::left << "lhs"
-            << std::setw(15) << std::left << "lhs_real"
-            << std::endl;
+  std::cout << std::setw(5) << std::left << "Cone";
+  // todo(aykut) this is not true all the time, what if cone is rotated.
+  std::cout << std::setw(20) << std::left << "x1^2-sum x_i^2"
+	    << std::setw(20) << std::left << "x1-||x_{2:n}||"
+	    << std::endl;
   const double * full_sol = getColSolution();
   for (int i=0; i<num_cones; ++i) {
     int cone_size = cc_->cone_size(i);
@@ -367,8 +368,8 @@ void ColaModel::report_feasibility() const {
       lhs_real = lhs;
     }
     std::cout << std::setw(5) << std::left << i
-              << std::setw(15) << std::left << lhs
-              << std::setw(15) << std::left << lhs_real
+              << std::setw(20) << std::left << lhs
+              << std::setw(20) << std::left << lhs_real
               << std::endl;
     delete[] par_sol;
   }
