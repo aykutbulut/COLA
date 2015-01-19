@@ -15098,6 +15098,23 @@ fi
 
 done
 
+for ac_header in atlas/clapack.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "atlas/clapack.h" "ac_cv_header_atlas_clapack_h" "$ac_includes_default"
+if test "x$ac_cv_header_atlas_clapack_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ATLAS_CLAPACK_H 1
+_ACEOF
+
+else
+
+  as_fn_error $? "unable to find clapack.h header file." "$LINENO" 5
+
+fi
+
+done
+
+
 
 # Checks for typedefs, str
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5
@@ -15291,7 +15308,63 @@ _ACEOF
 
   LIBS="-lm $LIBS"
 
+else
+
+  as_fn_error $? "unable to find math library and sqrt function." "$LINENO" 5
+
 fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for clapack_dposv in -llapack_atlas" >&5
+$as_echo_n "checking for clapack_dposv in -llapack_atlas... " >&6; }
+if ${ac_cv_lib_lapack_atlas_clapack_dposv+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-llapack_atlas  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char clapack_dposv ();
+int
+main ()
+{
+return clapack_dposv ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_lapack_atlas_clapack_dposv=yes
+else
+  ac_cv_lib_lapack_atlas_clapack_dposv=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_lapack_atlas_clapack_dposv" >&5
+$as_echo "$ac_cv_lib_lapack_atlas_clapack_dposv" >&6; }
+if test "x$ac_cv_lib_lapack_atlas_clapack_dposv" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBLAPACK_ATLAS 1
+_ACEOF
+
+  LIBS="-llapack_atlas $LIBS"
+
+else
+
+  as_fn_error $? "unable to find lapack_atlas library and clapack_dposv\
+  function. Make sure you have atlas, it provides c interface to lapack." "$LINENO" 5
+
+fi
+
 
 # Check dependent libraries through pkg-config
 

@@ -1,10 +1,16 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 if you have the <atlas/clapack.h> header file. */
+#undef HAVE_ATLAS_CLAPACK_H
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `lapack_atlas' library (-llapack_atlas). */
+#undef HAVE_LIBLAPACK_ATLAS
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM

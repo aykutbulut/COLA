@@ -4,7 +4,8 @@
 //#include <OsiSolverInterface.hpp>
 #include <OsiClpSolverInterface.hpp>
 #include <OsiConicSolverInterface.hpp>
-#include "ConicConstraints.hpp"
+#include "Cone.hpp"
+#include "LorentzCone.hpp"
 #include "Options.hpp"
 
 typedef enum {
@@ -20,7 +21,7 @@ typedef enum {
 class ColaModel: virtual public OsiConicSolverInterface,
 		 public OsiClpSolverInterface {
   // data members
-  ConicConstraints * cc_;
+  std::vector<Cone*> cones_;
   Options * options_;
   ProblemStatus soco_status_;
   // number of times we solve lp relaxation problem
@@ -33,11 +34,13 @@ class ColaModel: virtual public OsiConicSolverInterface,
   int * num_supports_;
   // total number of supports
   int total_num_supports_;
+  double * imp_solution_;
   // PRIVATE FUNCTIONS
   // reduce conic constraint given by size and members to smaller cones, save
-  // them in reduced_cc_i
+  // them in reduced_cone
   // num_var will store the new number of variables after reduction
-  void reduce_cone(int size, const int * members, ConicConstraints * reduced_cc_i, int & num_var);
+  void reduce_cone(int size, const int * members,
+		   std::vector<Cone*> & reduced_cone, int & num_var);
 protected:
   // get cut and support statistics
   const int * num_cuts() const;
@@ -52,6 +55,8 @@ protected:
   void set_total_num_cuts(int tnc);
   void set_total_num_supports(int tns);
   ProblemStatus solve(bool resolve);
+  // solve symmetric positive definite linear system Ax=b
+  void lapack_solve(double ** A, double * b, double * x, int dim);
 public:
   // default constructor
   ColaModel();
@@ -70,8 +75,8 @@ public:
   // functions
   //void read(const char * data_file);
   // following three is useful when we clone
-  void setConicConstraints(ConicConstraints * cc);
-  const ConicConstraints * get_conic_constraints() const;
+  void setConicConstraints(std::vector<Cone*> cones);
+  std::vector<Cone*> get_conic_constraints() const;
   void setOptions(Options * opt);
   Options * options() const;
   void print_stats() const;
@@ -80,16 +85,28 @@ public:
   int num_lp_solved() const;
   // VIRTUAL FUNCTIONS
   // get conic constraints
-  virtual void getConicConstraint(int index, OsiConeType & type,
+  virtual void getConicConstraint(int index, OsiLorentzConeType & type,
 				  int & numMembers,
 				  int *& members) const;
   // add conic constraints
-  virtual void addConicConstraint(OsiConeType type,
+  // add conic constraint in lorentz cone form
+  virtual void addConicConstraint(OsiLorentzConeType type,
 				  int numMembers,
-				  const int * members);
+				  int const * members);
+  // add conic constraint in |Ax-b| <= dx-h form
+  virtual void addConicConstraint(CoinPackedMatrix const * A,
+				  CoinPackedVector const * b,
+				  CoinPackedVector const * d, double h);
   virtual void removeConicConstraint(int index);
+  virtual void modifyConicConstraint(int index, OsiLorentzConeType type,
+				     int numMembers,
+				     int const * members);
   //ProblemStatus solve();
   virtual int getNumCones() const;
+  virtual int getConeSize(int i) const;
+  virtual void getConeSize(int * size) const;
+  virtual OsiConeType getConeType(int i) const;
+  virtual void getConeType(OsiConeType * type) const;
   virtual int readMps(const char * filename, const char * extension="mps");
   virtual void initialSolve();
   virtual void resolve();
@@ -99,6 +116,12 @@ public:
   // v is approximation paramete
   ProblemStatus solve_reducing_cones(bool resolve);
   ProblemStatus solve_with_bn(bool resolve, int v);
+  ProblemStatus solve_numeric();
+  void clean_redundant_constraints();
+  // use conic solver interface's writeMps method
+  virtual void writeMps(const char * filename,
+			const char * extension = "mps",
+			double objSense=0.0) const;
 };
 
 #endif

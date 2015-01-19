@@ -15,6 +15,10 @@ AC_PREFIX_DEFAULT([`pwd`])
 
 # Checks for header files.
 AC_CHECK_HEADERS([math.h])
+AC_CHECK_HEADERS([atlas/clapack.h], [], [
+  AC_MSG_ERROR([unable to find clapack.h header file.])
+])
+
 
 # Checks for typedefs, str
 AC_HEADER_STDBOOL
@@ -22,7 +26,15 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 
 # Check dependent libraries
-AC_CHECK_LIB([m], [sqrt])
+AC_CHECK_LIB([m], [sqrt], [],[
+  AC_MSG_ERROR([unable to find math library and sqrt function.])
+])
+
+AC_CHECK_LIB([lapack_atlas], [clapack_dposv], [], [
+  AC_MSG_ERROR([unable to find lapack_atlas library and clapack_dposv\
+  function. Make sure you have atlas, it provides c interface to lapack.])
+])
+
 # Check dependent libraries through pkg-config
 PKG_CHECK_MODULES([OSICONIC], [osiconic >= 0.0])
 PKG_CHECK_MODULES([OSICLP], [osi-clp >= 0.105])

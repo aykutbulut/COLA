@@ -99,8 +99,8 @@ am__DEPENDENCIES_1 =
 libCola_la_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
-am_libCola_la_OBJECTS = ConicConstraints.lo ColaModel.lo Separate.lo \
-	Cut.lo Options.lo
+am_libCola_la_OBJECTS = Cone.lo LorentzCone.lo ScaledCone.lo \
+	Separate.lo Options.lo ColaModel.lo
 libCola_la_OBJECTS = $(am_libCola_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am_cola_OBJECTS = Main.$(OBJEXT)
@@ -269,16 +269,18 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libCola.la
-libCola_la_SOURCES = ConicConstraints.hpp\
-	ConicConstraints.cpp\
-	ColaModel.hpp\
-	ColaModel.cpp\
+libCola_la_SOURCES = Cone.hpp\
+	Cone.cpp\
+	LorentzCone.hpp\
+	LorentzCone.cpp\
+	ScaledCone.hpp\
+	ScaledCone.cpp\
 	Separate.hpp\
 	Separate.cpp\
-	Cut.hpp\
-	Cut.cpp\
 	Options.hpp\
-	Options.cpp
+	Options.cpp\
+	ColaModel.hpp\
+	ColaModel.cpp
 
 libCola_la_LIBADD = \
 	$(OSICLP_LIBS)\
@@ -301,10 +303,11 @@ AM_CPPFLAGS = \
 
 
 # header files to be installed to $(includedir)
-include_HEADERS = ConicConstraints.hpp\
+include_HEADERS = Cone.hpp\
+	LorentzCone.hpp\
+	ScaledCone.hpp\
 	ColaModel.hpp\
 	Separate.hpp\
-	Cut.hpp\
 	Options.hpp
 
 all: all-am
@@ -432,10 +435,11 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ColaModel.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConicConstraints.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Cut.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Cone.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LorentzCone.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Options.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ScaledCone.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Separate.Plo@am__quote@
 
 .cpp.o:

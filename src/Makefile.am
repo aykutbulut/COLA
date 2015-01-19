@@ -1,15 +1,17 @@
 lib_LTLIBRARIES = libCola.la
 
-libCola_la_SOURCES=ConicConstraints.hpp\
-	ConicConstraints.cpp\
-	ColaModel.hpp\
-	ColaModel.cpp\
+libCola_la_SOURCES=Cone.hpp\
+	Cone.cpp\
+	LorentzCone.hpp\
+	LorentzCone.cpp\
+	ScaledCone.hpp\
+	ScaledCone.cpp\
 	Separate.hpp\
 	Separate.cpp\
-	Cut.hpp\
-	Cut.cpp\
 	Options.hpp\
-	Options.cpp
+	Options.cpp\
+	ColaModel.hpp\
+	ColaModel.cpp
 
 libCola_la_LIBADD=\
 	$(OSICLP_LIBS)\
@@ -35,10 +37,11 @@ AM_CPPFLAGS=\
 
 
 # header files to be installed to $(includedir)
-include_HEADERS=ConicConstraints.hpp\
+include_HEADERS=Cone.hpp\
+	LorentzCone.hpp\
+	ScaledCone.hpp\
 	ColaModel.hpp\
 	Separate.hpp\
-	Cut.hpp\
 	Options.hpp
 
 # this are in the disctribution but not in include

@@ -15,7 +15,7 @@ int main(int argc, char ** argv) {
   clock_t overall_duration = clock() - overall_start_time;
   ProblemStatus s = model->problem_status();
   if (s==OPTIMAL) {
-    model->get_conic_constraints()->dump_cones_brief();
+    //model->get_conic_constraints()->dump_cones_brief();
     //model->get_conic_constraints()->dump_cones();
     //model->print_solution();
     model->report_feasibility();

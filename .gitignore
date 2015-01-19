@@ -5,3 +5,8 @@
 /autom4te.cache
 /compile
 /stamp-h1
+
+*.mps
+*.o
+*.gz
+*.int
