@@ -4,7 +4,8 @@
 
 ScaledCone::ScaledCone(CoinPackedMatrix const * const A,
 		       CoinPackedVector const * const b,
-		       CoinPackedVector const * const d, double h) {
+		       CoinPackedVector const * const d, double h)
+  : Cone(SCALED) {
   A_ = new CoinPackedMatrix(*A);
   b_ = new CoinPackedVector(*b);
   d_ = new CoinPackedVector(*d);
@@ -14,7 +15,8 @@ ScaledCone::ScaledCone(CoinPackedMatrix const * const A,
   compute_dense_b();
 }
 
-ScaledCone::ScaledCone(ScaledCone const & other) {
+ScaledCone::ScaledCone(ScaledCone const & other)
+  : Cone(SCALED) {
   A_ = new CoinPackedMatrix(*(other.matrixA()));
   b_ = new CoinPackedVector(*(other.vectorb()));
   d_ = new CoinPackedVector(*(other.vectord()));
@@ -24,12 +26,16 @@ ScaledCone::ScaledCone(ScaledCone const & other) {
 }
 
 ScaledCone & ScaledCone::operator=(ScaledCone const & rhs) {
-  A_ = new CoinPackedMatrix(*(rhs.matrixA()));
-  b_ = new CoinPackedVector(*(rhs.vectorb()));
-  d_ = new CoinPackedVector(*(rhs.vectord()));
-  h_ = rhs.h();
-  dense_b_ = 0;
-  compute_dense_b();
+  if (this!=&rhs) {
+    Cone::operator=(rhs);
+    A_ = new CoinPackedMatrix(*(rhs.matrixA()));
+    b_ = new CoinPackedVector(*(rhs.vectorb()));
+    d_ = new CoinPackedVector(*(rhs.vectord()));
+    h_ = rhs.h();
+    dense_b_ = 0;
+    compute_dense_b();
+  }
+  return *this;
 }
 
 Cone * ScaledCone::clone() const {
@@ -62,10 +68,6 @@ double ScaledCone::h() const {
   return h_;
 }
 
-ConeType ScaledCone::type() const {
-  return SCALED;
-}
-
 // returns 0 if point is epsilon feasible, nonzero otherwise
 int ScaledCone::separate(int size, double const * point,
 			 CoinPackedVector * & cut,
@@ -73,7 +75,7 @@ int ScaledCone::separate(int size, double const * point,
   std::cerr << "Not implemented yet." << std::endl;
   throw std::exception();
   double feas = 0.0;
-  if (feas>-EPS)
+  if (feas>-options()->get_dbl_option(TOL))
     return 0;
   int n = A_->getNumCols();
   if (size!=n) {
@@ -142,7 +144,7 @@ double ScaledCone::feasibility(int size, CoinPackedVector const & point) const {
   }
   double feas = feasibility(p);
   delete[] p;
-  return  feas;
+  return feas;
 }
 
 // go along d until you hit boundry. sol is on the boundry
@@ -184,3 +186,15 @@ void ScaledCone::compute_dense_b() {
   }
 }
 
+// initial linear relaxation of conic constraints
+// add dx-h>=0 for SCALED cones.
+void ScaledCone::relax (OsiSolverInterface & model) const {
+  model.addRow(*d_, h_, model.getInfinity());
+}
+
+// reduces conic constraint to a set of conic constraints of smaller size.
+// used for bet-tal nemirovski method
+std::vector<Cone*> ScaledCone::reduce() const {
+  std::cerr << "Not implemented yet." << std::endl;
+  throw std::exception();
+}

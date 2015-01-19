@@ -29,7 +29,6 @@ public:
   // VIRTUAL FUNCTIONS
   // return pointer to a clone of this
   virtual Cone * clone() const;
-  virtual ConeType type() const;
   // returns 0 if point is epsilon feasible, nonzero otherwise
   //virtual int separate(int size, double const * point, int * & coef_ind,
   //		       double * & coef_val, double & rhs) const;
@@ -44,6 +43,12 @@ public:
   // for Scaled cones dx-h-|Ax-b|
   virtual double feasibility(double const * point) const;
   virtual double feasibility(int size, CoinPackedVector const & point) const;
+  // initial linear relaxation of conic constraints
+  // add dx-h>=0 for SCALED cones.
+  virtual void relax (OsiSolverInterface & model) const;
+  // reduces conic constraint to a set of conic constraints of smaller size.
+  // used for bet-tal nemirovski method
+  virtual std::vector<Cone*> reduce() const;
 };
 
 #endif

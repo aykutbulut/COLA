@@ -3,32 +3,23 @@
 
 #include "Cone.hpp"
 
-typedef enum {
-  QUAD=0,
-  RQUAD,
-} LorentzConeType;
-
-
 class LorentzCone: virtual public Cone {
-  LorentzConeType lc_type_;
   int size_;
   int * members_;
   void simple_separation(double const * p, double * coef) const;
   void closest_point_separation(double const * p, double * coef) const;
   void find_closest_point(double const * y, double * sol) const;
 public:
-  LorentzCone(LorentzConeType type, int size, int const * members);
+  LorentzCone(ConeType type, int size, int const * members);
   // copy constructor
   LorentzCone(LorentzCone const & other);
   // copy assignment operator
   LorentzCone & operator=(LorentzCone const & rhs);
   ~LorentzCone();
   int const * members() const;
-  LorentzConeType lorentz_cone_type() const;
   // VIRTUAL FUNCTIONS
   // return pointer to a clone of this
   virtual Cone * clone() const;
-  virtual ConeType type() const;
   // returns 0 if point is not epsilon feasible, nonzero otherwise
   //virtual int separate(int size, double const * point, int * & coef_ind,
   //		       double * & coef_val, double & rhs) const;
@@ -43,6 +34,15 @@ public:
   // for Scaled cones dx-h-|Ax-b|
   virtual double feasibility(double const * point) const;
   virtual double feasibility(int size, CoinPackedVector const & point) const;
+  // initial linear relaxation of conic constraints
+  // add x_1>=0 for LORENTZ cones
+  // add x_1>=0, x_2>=0 for RLORENTZ cones
+  // add dx-h>=0 for SCALED cones.
+  virtual void relax (OsiSolverInterface & model) const;
+  // reduces conic constraint to a set of conic constraints of smaller size.
+  // used for bet-tal nemirovski method
+  virtual std::vector<Cone*> reduce() const;
+
 };
 
 #endif

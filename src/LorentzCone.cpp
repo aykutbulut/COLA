@@ -4,16 +4,20 @@
 #include <set>
 #include <iomanip>
 
-LorentzCone::LorentzCone(LorentzConeType type, int size, int const * members) {
-  lc_type_ = type;
+LorentzCone::LorentzCone(ConeType type, int size, int const * members)
+  : Cone(type) {
+  if (type==SCALED) {
+    std::cerr << "Use ScaledCone class for scaled cones."
+	      << std::endl;
+    throw std::exception();
+  }
   size_ = size;
   members_ = new int[size];
   std::copy(members, members+size, members_);
 }
 
 // copy constructor
-LorentzCone::LorentzCone(LorentzCone const & other) {
-  lc_type_ = other.lorentz_cone_type();
+LorentzCone::LorentzCone(LorentzCone const & other): Cone(other) {
   size_ = other.size();
   // copy members
   int const * other_members = other.members();
@@ -22,11 +26,14 @@ LorentzCone::LorentzCone(LorentzCone const & other) {
 
 // copy assignment operator
 LorentzCone & LorentzCone::operator=(LorentzCone const & rhs) {
-  lc_type_ = rhs.lorentz_cone_type();
-  size_ = rhs.size();
-  // copy members
-  int const * rhs_members = rhs.members();
-  std::copy(rhs_members, rhs_members+size_, members_);
+  if (this!=&rhs) {
+    Cone::operator=(rhs);
+    size_ = rhs.size();
+    // copy members
+    int const * rhs_members = rhs.members();
+    std::copy(rhs_members, rhs_members+size_, members_);
+  }
+  return *this;
 }
 
 Cone * LorentzCone::clone() const {
@@ -42,22 +49,13 @@ int const * LorentzCone::members() const {
   return members_;
 }
 
-LorentzConeType LorentzCone::lorentz_cone_type() const {
-  return lc_type_;
-}
-
-
 // VIRTUAL FUNCTIONS
-ConeType LorentzCone::type() const {
-  return LORENTZ;
-}
-
 // returns 0 if point is not epsilon feasible, nonzero otherwise
 int LorentzCone::separate(int size, double const * point,
 			  CoinPackedVector * & cut,
 			  double & rhs) const {
   double feas = feasibility(point);
-  if (feas>-EPS)
+  if (feas>-options()->get_dbl_option(TOL))
     return 1;
   // coef array, [2x1, -2x2, -2x3, ... -2xn]
   double * coef = new double[size_];
@@ -70,7 +68,7 @@ int LorentzCone::separate(int size, double const * point,
   // closest_point_separation(p, coef);
   // check if we actually cut the point
   double term1 = std::inner_product(coef, coef+size_, p, 0.0);
-  if (term1< -EPS) {
+  if (term1< -options()->get_dbl_option(TOL)) {
     std::cerr << "Generated plane does not cut point." << std::endl;
     throw std::exception();
   }
@@ -100,12 +98,12 @@ double LorentzCone::feasibility(double const * point) const {
   double term1;
   double term2;
   double feas;
-  if (lc_type_==QUAD) {
+  if (type()==LORENTZ) {
     term1 = p[0];
     term2 = std::inner_product(p+1, p+size_, p+1, 0.0);
     term2 = sqrt(term2);
   }
-  else {
+  else if (type()==RLORENTZ) {
     term1 = 2.0*p[0]*p[1];
     term2 = std::inner_product(p+2, p+size_, p+2, 0.0);
   }
@@ -131,12 +129,12 @@ double LorentzCone::feasibility(int size, CoinPackedVector const & point) const 
   double term1;
   double term2;
   double feas;
-  if (lc_type_==QUAD) {
+  if (type()==LORENTZ) {
     term1 = p[0];
     term2 = std::inner_product(p+1, p+size_, p+1, 0.0);
     term2 = sqrt(term2);
   }
-  else if (lc_type_==RQUAD) {
+  else if (type()==RLORENTZ) {
     term1 = 2.0*p[0]*p[1];
     term2 = std::inner_product(p+2, p+size_, p+2, 0.0);
   }
@@ -148,7 +146,7 @@ double LorentzCone::feasibility(int size, CoinPackedVector const & point) const 
 void LorentzCone::simple_separation(double const * p,
 				 double * coef) const {
   double sum_rest;
-  if (lc_type_==QUAD) {
+  if (type()==LORENTZ) {
     sum_rest = std::inner_product(p+1, p+size_, p+1, 0.0);
     double x1 = sqrt(sum_rest);
     // cone is in canonical form
@@ -157,10 +155,10 @@ void LorentzCone::simple_separation(double const * p,
     }
     coef[0] = -2.0*x1;
   }
-  else if (lc_type_==RQUAD) {
+  else if (type()==RLORENTZ) {
     //  at the end, set coef and lhs
-    // map point from RQUAD space to QUAD space, find the projection on QUAD,
-    // project this point to RQUAD and generate cut
+    // map point from RLORENTZ space to LORENTZ space, find the projection on LORENTZ,
+    // project this point to RLORENTZ and generate cut
     sum_rest = std::inner_product(p+2, p+size_, p+2, 0.0);
     double x1 = 0.0;
     double x2 = 0.0;
@@ -189,14 +187,14 @@ void LorentzCone::closest_point_separation(double const * p,
   // compute point on boundry closest to given point
   double * sol = new double[size_]();
   find_closest_point(p, sol);
-  if (lc_type_==QUAD) {
+  if (type()==LORENTZ) {
     // cone is in canonical form
     for (int i=1; i<size_; ++i) {
       coef[i] = 2.0*sol[i];
     }
     coef[0] = -2.0*sol[0];
   }
-  else if (lc_type_==RQUAD) {
+  else if (type()==RLORENTZ) {
     coef[0] = -2.0*sol[1];
     coef[1] = -2.0*sol[0];
     for (int i=2; i<size_; ++i) {
@@ -208,7 +206,7 @@ void LorentzCone::closest_point_separation(double const * p,
 
 void LorentzCone::find_closest_point(double const * y,
 			    double * sol) const {
-  if (lc_type_==RQUAD) {
+  if (type()==RLORENTZ) {
     std::cerr << "Rotated cones are not implemented yet!" << std::endl;
     throw std::exception();
   }
@@ -278,7 +276,7 @@ void LorentzCone::find_closest_point(double const * y,
 	max_diff = value;
     }
     // stop if the iterates are close enough
-    // if (max_diff<EPS or iter_num>20)
+    // if (max_diff<options()->get_dbl_option(TOL) or iter_num>20)
     //   stop = 1;
     // 5. update prev_x
     std::copy(x, x+dim, prev_x);
@@ -301,8 +299,8 @@ void LorentzCone::find_closest_point(double const * y,
 	      << std::setw(15) << obj
 	      << std::endl;
 
-    if ((((x[0]-sqrt(xi_2))<EPS) and
-	 -EPS<(x[0]-sqrt(xi_2))) or
+    if ((((x[0]-sqrt(xi_2))<options()->get_dbl_option(TOL)) and
+	 -options()->get_dbl_option(TOL)<(x[0]-sqrt(xi_2))) or
 	iter_num >40)
       stop = 1;
   }
@@ -316,3 +314,23 @@ void LorentzCone::find_closest_point(double const * y,
   delete[] x;
 }
 
+
+// initial linear relaxation of conic constraints
+// add x_1>=0 for LORENTZ cones
+// add x_1>=0, x_2>=0 for RLORENTZ cones
+void LorentzCone::relax (OsiSolverInterface & model) const {
+  if (type()==LORENTZ) {
+    model.setColLower(members_[0], 0.0);
+  }
+  else if (type()==RLORENTZ) {
+    model.setColLower(members_[0], 0.0);
+    model.setColLower(members_[1], 0.0);
+  }
+}
+
+// reduces conic constraint to a set of conic constraints of smaller size.
+// used for bet-tal nemirovski method
+std::vector<Cone*> LorentzCone::reduce() const {
+  std::cerr << "Not implemented yet." << std::endl;
+  throw std::exception();
+}

@@ -146,11 +146,11 @@ ColaModel::~ColaModel() {
 void ColaModel::addConicConstraint(OsiLorentzConeType type,
 				  int numMembers,
 				  int const * members) {
-  LorentzConeType t;
+  ConeType t;
   if (type==OSI_QUAD)
-    t = QUAD;
+    t = LORENTZ;
   else
-    t = RQUAD;
+    t = RLORENTZ;
   Cone * c = new LorentzCone(t, numMembers, members);
   cones_.push_back(c);
 }
@@ -226,16 +226,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
   // add nonnegativity of leading variables
   std::vector<Cone*>::const_iterator it;
   for (it=cones_.begin(); it!=cones_.end(); ++it) {
-    if ((*it)->type()==LORENTZ) {
-      LorentzCone * c = dynamic_cast<LorentzCone*>(*it);
-      if (c->lorentz_cone_type()==QUAD) {
-	setColLower(c->members()[0], 0.0);
-      }
-      else if (c->lorentz_cone_type()==RQUAD) {
-	setColLower(c->members()[0], 0.0);
-	setColLower(c->members()[1], 0.0);
-      }
-    }
+    (*it)->relax(*this);
   }
   // ===== End Of adding nonnegativity of leading variables
   //writeMps("initial", "mps");
@@ -404,20 +395,16 @@ void ColaModel::report_feasibility() const {
 	    << std::endl;
   for (int i=0; i<cones_.size(); ++i) {
     if (cones_[i]->type()==LORENTZ) {
-
-      LorentzCone * c = dynamic_cast<LorentzCone*>(cones_[i]);
-      if (c->lorentz_cone_type()==QUAD) {
-	std::cout << std::setw(5) << std::left << i
-		  << std::setw(20) << std::left << "-"
-		  << std::setw(20) << std::left << c->feasibility(getColSolution())
-		  << std::endl;
-      }
-      else if (c->lorentz_cone_type()==RQUAD) {
-	std::cout << std::setw(5) << std::left << i
-		  << std::setw(20) << std::left << "-"
-		  << std::setw(20) << std::left << c->feasibility(getColSolution())
-		  << std::endl;
-      }
+      std::cout << std::setw(5) << std::left << i
+		<< std::setw(20) << std::left << "-"
+		<< std::setw(20) << std::left << cones_[i]->feasibility(getColSolution())
+		<< std::endl;
+    }
+    else if (cones_[i]->type()==RLORENTZ) {
+      std::cout << std::setw(5) << std::left << i
+		<< std::setw(20) << std::left << "-"
+		<< std::setw(20) << std::left << cones_[i]->feasibility(getColSolution())
+		<< std::endl;
     }
   }
 }
@@ -547,18 +534,18 @@ void ColaModel::getConeType(OsiConeType * type) const {
 void ColaModel::getConicConstraint(int index, OsiLorentzConeType & type,
 				   int & numMembers,
 				   int *& members) const {
-  if (cones_[index]->type()==SCALED) {
+  ConeType t = cones_[index]->type();
+  if (t==SCALED) {
     std::cerr << "this function is for Lorentz cones!" << std::endl;
     throw std::exception();
   }
-  LorentzCone * c = dynamic_cast<LorentzCone*>(cones_[index]);
-  LorentzConeType t = c->lorentz_cone_type();
-  if (t==QUAD)
+  if (t==LORENTZ)
     type = OSI_QUAD;
-  else
+  else if (t==RLORENTZ)
     type = OSI_RQUAD;
-  numMembers = c->size();
+  numMembers = cones_[index]->size();
   members = new int[numMembers];
+  LorentzCone * c = dynamic_cast<LorentzCone*>(cones_[index]);
   const int * m = c->members();
   std::copy(m, m+numMembers, members);
 }
@@ -593,8 +580,7 @@ ProblemStatus ColaModel::solve_reducing_cones(bool resolve) {
   }
   // if we have rotated cones bail out,
   for (int i=0; i<num_cones; ++i) {
-    LorentzCone * c = dynamic_cast<LorentzCone*>(cones_[i]);
-    if (c->lorentz_cone_type()==RQUAD) {
+    if (cones_[i]->type()==SCALED or cones_[i]->type()==RLORENTZ) {
       std::cerr << "Cola: This method is only for canonical cones."
 		<< std::endl;
       std::cerr << "Cola: Terminating..." << std::endl;
@@ -754,7 +740,7 @@ void ColaModel::reduce_cone(int size, const int * members,
   // k is
   if (size<=3) {
     // add current cone and return
-    Cone * c = new LorentzCone(QUAD, size, members);
+    Cone * c = new LorentzCone(LORENTZ, size, members);
     reduced_cones_i.push_back(c);
     return;
   }
@@ -764,21 +750,21 @@ void ColaModel::reduce_cone(int size, const int * members,
     nm[0] = num_var+i;
     nm[1] = members[2*i+1];
     nm[2] = members[2*i+2];
-    Cone * c = new LorentzCone(QUAD, 3, nm);
+    Cone * c = new LorentzCone(LORENTZ, 3, nm);
     reduced_cones_i.push_back(c);
   }
   // check if the last cone has 3 or 2 members
   if (2*k==size) {
     nm[0] = num_var+k-1;
     nm[1] = members[size-1];
-    Cone * c = new LorentzCone(QUAD, 2, nm);
+    Cone * c = new LorentzCone(LORENTZ, 2, nm);
     reduced_cones_i.push_back(c);
   }
   else {
     nm[0] = num_var+k-1;
     nm[1] = members[size-2];
     nm[2] = members[size-1];
-    Cone * c = new LorentzCone(QUAD, 3, nm);
+    Cone * c = new LorentzCone(LORENTZ, 3, nm);
     reduced_cones_i.push_back(c);
   }
   // reduce cone of new variables
@@ -1093,13 +1079,13 @@ ProblemStatus ColaModel::solve_numeric() {
     for (int j=0; j<cone_size; ++j) {
       par_sol[j] = full_sol[members[j]];
     }
-    if (con->lorentz_cone_type()==QUAD) {
+    if (con->type()==LORENTZ) {
       lhs = par_sol[0]*par_sol[0]
 	- std::inner_product(par_sol+1, par_sol+cone_size, par_sol+1, 0.0);
       lhs_real = par_sol[0]
 	-sqrt(std::inner_product(par_sol+1, par_sol+cone_size, par_sol+1, 0.0));
     }
-    else if (con->lorentz_cone_type()==RQUAD) {
+    else if (con->type()==RLORENTZ) {
       lhs = 2.0*par_sol[0]*par_sol[1]
 	- std::inner_product(par_sol+2, par_sol+cone_size, par_sol+2, 0.0);
       lhs_real = lhs;
