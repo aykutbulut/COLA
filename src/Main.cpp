@@ -8,12 +8,22 @@ int main(int argc, char ** argv) {
   clock_t read_start_time = clock();
   model->readMps(argv[1]);
   clock_t read_duration = clock() - read_start_time;
-  model->options()->set_int_option(LOG_LEVEL, 1);
+  //model->options()->set_int_option(LOG_LEVEL, 1);
+  model->options()->set_int_option(LOG_LEVEL, 0);
   clock_t solution_start_time = clock();
   model->initialSolve();
   clock_t solution_duration = clock() - solution_start_time;
   clock_t overall_duration = clock() - overall_start_time;
   ProblemStatus s = model->problem_status();
+  ///// problem status debud
+  std::cout << "Is abandoned " << model->isAbandoned() << std::endl;
+  std::cout << "Is proven optimal " << model->isProvenOptimal() << std::endl;
+  std::cout << "Is proven primal infeasible " << model->isProvenPrimalInfeasible() << std::endl;
+  std::cout << "Is proven dual infeasible " << model->isProvenDualInfeasible() << std::endl;
+  std::cout << "Is primal objective limit reached " << model->isPrimalObjectiveLimitReached() << std::endl;
+  std::cout << "Is dual objective limit reached " << model->isDualObjectiveLimitReached() << std::endl;
+  std::cout << "Is iteration limit reached " << model->isIterationLimitReached() << std::endl;
+  ///// end of problem status debug
   if (s==OPTIMAL) {
     //model->get_conic_constraints()->dump_cones_brief();
     //model->get_conic_constraints()->dump_cones();

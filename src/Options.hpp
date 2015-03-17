@@ -6,7 +6,6 @@
 typedef enum {
   LOG_LEVEL=0,
   OSI_LOG_LEVEL,
-  IPOPT_LOG_LEVEL,
   //  end_of_int_options
 } IntOptions;
 

@@ -38,7 +38,7 @@ public:
   // add x_1>=0 for LORENTZ cones
   // add x_1>=0, x_2>=0 for RLORENTZ cones
   // add dx-h>=0 for SCALED cones.
-  virtual void relax (OsiSolverInterface & model) const;
+  virtual void relax (ColaModel & model) const;
   // reduces conic constraint to a set of conic constraints of smaller size.
   // used for bet-tal nemirovski method
   virtual std::vector<Cone*> reduce() const;

@@ -25,9 +25,9 @@ Options * Options::clone() const {
 }
 
 Options::~Options() {
-  int_options_.empty();
-  dbl_options_.empty();
-  str_options_.empty();
+  int_options_.clear();
+  dbl_options_.clear();
+  str_options_.clear();
 }
 
 void Options::set_int_option(IntOptions opt, int value) {
@@ -50,7 +50,6 @@ void Options::set_defaults() {
   // set default int options
   int_options_[LOG_LEVEL] = 0;
   int_options_[OSI_LOG_LEVEL] = 0;
-  int_options_[IPOPT_LOG_LEVEL] = 0;
   // set default float options
   dbl_options_[TOL] = 1e-5;
 }

@@ -45,7 +45,7 @@ public:
   virtual double feasibility(int size, CoinPackedVector const & point) const;
   // initial linear relaxation of conic constraints
   // add dx-h>=0 for SCALED cones.
-  virtual void relax (OsiSolverInterface & model) const;
+  virtual void relax (ColaModel & model) const;
   // reduces conic constraint to a set of conic constraints of smaller size.
   // used for bet-tal nemirovski method
   virtual std::vector<Cone*> reduce() const;

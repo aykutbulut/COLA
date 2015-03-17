@@ -1,4 +1,6 @@
 #include "ScaledCone.hpp"
+#include "ColaModel.hpp"
+
 #include <numeric>
 #include <cmath>
 
@@ -188,7 +190,7 @@ void ScaledCone::compute_dense_b() {
 
 // initial linear relaxation of conic constraints
 // add dx-h>=0 for SCALED cones.
-void ScaledCone::relax (OsiSolverInterface & model) const {
+void ScaledCone::relax (ColaModel & model) const {
   model.addRow(*d_, h_, model.getInfinity());
 }
 

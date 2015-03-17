@@ -7,6 +7,8 @@
 // Cola headers
 #include "Options.hpp"
 
+class ColaModel;
+
 typedef enum {
   LORENTZ=0, // lorentz cone, x_1 >= |x_2:n|
   RLORENTZ,  // rotated lorentz cone, 2x1x2>=|x_3:n|, x1>=0, x2>=0
@@ -48,7 +50,7 @@ public:
   // add x_1>=0 for LORENTZ cones
   // add x_1>=0, x_2>=0 for RLORENTZ cones
   // add dx-h>=0 for SCALED cones.
-  virtual void relax (OsiSolverInterface & model) const = 0;
+  virtual void relax (ColaModel & model) const = 0;
   // reduces conic constraint to a set of conic constraints of smaller size.
   // used for bet-tal nemirovski method
   virtual std::vector<Cone*> reduce() const = 0;

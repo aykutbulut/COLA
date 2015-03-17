@@ -5,7 +5,6 @@
 #include <OsiClpSolverInterface.hpp>
 #include <OsiConicSolverInterface.hpp>
 #include "Cone.hpp"
-#include "LorentzCone.hpp"
 #include "Options.hpp"
 
 typedef enum {
@@ -17,6 +16,14 @@ typedef enum {
   DUAL_OBJECTIVE_LIMIT_REACHED,
   ITERATION_LIMIT_REACHED,
 } ProblemStatus;
+
+// TODO(aykut) implement getIterationCount(). It should give number of simplex
+// iteration count. Right now it gives the number of iteration count of
+// the last OsiClpSolverInterface::resolve call.
+
+// TODO(aykut) how relevant the dual solution is? That is used by symphony.
+//
+
 
 class ColaModel: virtual public OsiConicSolverInterface,
 		 public OsiClpSolverInterface {

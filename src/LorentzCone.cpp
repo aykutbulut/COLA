@@ -1,4 +1,6 @@
 #include "LorentzCone.hpp"
+#include "ColaModel.hpp"
+
 #include <numeric>
 #include <cmath>
 #include <set>
@@ -67,6 +69,8 @@ int LorentzCone::separate(int size, double const * point,
   simple_separation(p, coef);
   // closest_point_separation(p, coef);
   // check if we actually cut the point
+  // todo(aykut) there is a problem here. we should check sol not p,
+  // p is on the cone boundry.
   double term1 = std::inner_product(coef, coef+size_, p, 0.0);
   if (term1< -options()->get_dbl_option(TOL)) {
     std::cerr << "Generated plane does not cut point." << std::endl;
@@ -318,7 +322,7 @@ void LorentzCone::find_closest_point(double const * y,
 // initial linear relaxation of conic constraints
 // add x_1>=0 for LORENTZ cones
 // add x_1>=0, x_2>=0 for RLORENTZ cones
-void LorentzCone::relax (OsiSolverInterface & model) const {
+void LorentzCone::relax (ColaModel & model) const {
   if (type()==LORENTZ) {
     model.setColLower(members_[0], 0.0);
   }

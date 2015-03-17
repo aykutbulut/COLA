@@ -1,6 +1,8 @@
 #include "ColaModel.hpp"
 #include "Cone.hpp"
+#include "LorentzCone.hpp"
 #include "ScaledCone.hpp"
+
 #include "Separate.hpp"
 
 #include "CoinMpsIO.hpp"
@@ -219,6 +221,8 @@ ProblemStatus ColaModel::solve(bool resolve) {
   // todo(aykut) now we should check if the cone related data is initialized
   // properly. This is a problem when the user does not read problem from mps
   // file but builds the model herself using cola as a library.
+  if (num_cuts_==0)
+    initialSolve();
 
   // solve linear problem
   bool feasible = false;
@@ -289,6 +293,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
 	// primal ray is feasible for all cone constraints,
 	// problem is unbounded
 	delete sep;
+	soco_status_ = DUAL_INFEASIBLE;
 	return DUAL_INFEASIBLE;
       }
       else {
@@ -366,6 +371,8 @@ ProblemStatus ColaModel::solve(bool resolve) {
   delete sep;
   // update problem status
   update_problem_status();
+  // clean redundant constraints
+  // clean_redundant_constraints();
   return soco_status_;
 }
 
@@ -402,8 +409,8 @@ void ColaModel::report_feasibility() const {
     }
     else if (cones_[i]->type()==RLORENTZ) {
       std::cout << std::setw(5) << std::left << i
-		<< std::setw(20) << std::left << "-"
 		<< std::setw(20) << std::left << cones_[i]->feasibility(getColSolution())
+		<< std::setw(20) << std::left << "-"
 		<< std::endl;
     }
   }
@@ -418,10 +425,12 @@ void ColaModel::initialSolve() {
     num_supports_ = new int[nOfCones]();
   }
   solve(false);
+  update_problem_status();
 }
 
 void ColaModel::resolve() {
   solve(true);
+  update_problem_status();
 }
 
 // returns problem status and updates status_
@@ -811,7 +820,7 @@ void ColaModel::clean_redundant_constraints() {
   std::copy(rows_to_delete.begin(), rows_to_delete.end(), row_indices);
   if (num_to_delete) {
     OsiClpSolverInterface::deleteRows(num_to_delete, row_indices);
-  // update total number of cuts
+    // update total number of cuts
     total_num_cuts_ -=  num_to_delete;
   }
   delete[] cstat;
