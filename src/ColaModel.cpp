@@ -15,6 +15,8 @@
 #include <iomanip>
 #include <numeric>
 #include <cmath>
+#include <string>
+#include <iostream>
 
 extern "C" {
 #include <atlas/clapack.h>
@@ -127,10 +129,10 @@ OsiConicSolverInterface * ColaModel::clone (bool copyData) const {
 
 ColaModel::~ColaModel() {
   // free conic constraints
-  std::vector<Cone*>::iterator it;
-  for (it=cones_.begin(); it!=cones_.end(); it++) {
-    delete *it;
-  }
+  // std::vector<Cone*>::iterator it;
+  // for (it=cones_.begin(); it!=cones_.end(); it++) {
+  //   delete *it;
+  // }
   cones_.clear();
   // free rest
   if(num_cuts_) {
@@ -252,9 +254,11 @@ ProblemStatus ColaModel::solve(bool resolve) {
   // todo(aykut) I guess SOCO is unbounded if LP is unbounded after all these
   // supporting hyperplanes. Check if this is true theoretically.
   if (soco_status_==DUAL_INFEASIBLE) {
-    std::cout << "Cola: Problem without conic constraints is unbounded. Adding"
-      " supporting hyperplanes to resolve..."
-	      << std::endl;
+    if (options_->get_int_option(LOG_LEVEL)>0) {
+      std::cout << "Cola: Problem without conic constraints is unbounded. Adding"
+        " supporting hyperplanes to resolve..."
+                << std::endl;
+    }
     while (soco_status_==DUAL_INFEASIBLE) {
       // check if primal is infeasible, then the problem is infeasible
       if (isProvenPrimalInfeasible()) {
@@ -323,8 +327,8 @@ ProblemStatus ColaModel::solve(bool resolve) {
       update_problem_status();
     }
   }
-  // it means it is not optimal after resolving unbounded directions
   if (soco_status_!=OPTIMAL) {
+    // it means it is not optimal after resolving unbounded directions
     std::cout << "Cola: Problem status is not optimal after adding "
       "supporting hyperplanes."
 	      << std::endl;
@@ -340,7 +344,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
     // number of cuts generated
     // std::cout << "ColaModel: " << sep->cuts()->size() << " cuts generated." << std::endl;
     // add all the cuts generated
-	// Add all the cuts generated
+    // Add all the cuts generated
     std::vector<CoinPackedVector*> cut = sep->cuts();
     std::vector<double> rhs = sep->rhs();
     std::vector<int> gen_cone = sep->generating_cone();
@@ -539,6 +543,21 @@ void ColaModel::getConeType(OsiConeType * type) const {
   }
 }
 
+void ColaModel::getConeType(OsiLorentzConeType * type) const {
+  int num_cones = cones_.size();
+  ConeType t;
+  for (int i=0; i<num_cones; ++i) {
+    t = cones_[i]->type();
+    if (t==LORENTZ)
+      type[i] = OSI_QUAD;
+    else if (t==RLORENTZ)
+      type[i] = OSI_RQUAD;
+    else {
+      std::cerr << "Cone is not a lorentz cone!" << std::endl;
+      throw std::exception();
+    }
+  }
+}
 
 void ColaModel::getConicConstraint(int index, OsiLorentzConeType & type,
 				   int & numMembers,
@@ -566,9 +585,15 @@ void ColaModel::removeConicConstraint(int index) {
 void ColaModel::modifyConicConstraint(int index, OsiLorentzConeType type,
 				      int numMembers,
 				      int const * members) {
-  std::cerr << "Modifying cones is not implemented yet!"
-	    << std::endl;
-  throw std::exception();
+  // free cone data first
+  delete cones_[index];
+  // insert new cone
+  ConeType t;
+  if (type==OSI_QUAD)
+    t = LORENTZ;
+  else
+    t = RLORENTZ;
+  cones_[index] = new LorentzCone(t, numMembers, members);
 }
 
 // first reduces all conic constraints to 3 dimentional second order conic
@@ -1128,4 +1153,3 @@ void ColaModel::lapack_solve(double ** A, double * b, double * x, int dim) {
   clapack_dposv (ao, uplo, dim, num_rhs, A_lower, dim, x, dim);
   delete[] A_lower;
 }
-

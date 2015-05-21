@@ -35,6 +35,12 @@ AC_CHECK_LIB([lapack_atlas], [clapack_dposv], [], [
   function. Make sure you have atlas, it provides c interface to lapack.])
 ])
 
+
+PKG_CHECK_MODULES([ATLAS_BLAS], [atlas_blas >= 3.0])
+PKG_CHECK_MODULES([ATLAS_LAPACK], [atlas_lapack >= 3.0])
+
+
+
 # Check dependent libraries through pkg-config
 PKG_CHECK_MODULES([OSICONIC], [osiconic >= 0.0])
 PKG_CHECK_MODULES([OSICLP], [osi-clp >= 0.105])

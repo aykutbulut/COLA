@@ -22,6 +22,7 @@ LorentzCone::LorentzCone(ConeType type, int size, int const * members)
 LorentzCone::LorentzCone(LorentzCone const & other): Cone(other) {
   size_ = other.size();
   // copy members
+  members_ = new int[size_];
   int const * other_members = other.members();
   std::copy(other_members, other_members+size_, members_);
 }
@@ -32,6 +33,7 @@ LorentzCone & LorentzCone::operator=(LorentzCone const & rhs) {
     Cone::operator=(rhs);
     size_ = rhs.size();
     // copy members
+    members_ = new int[size_];
     int const * rhs_members = rhs.members();
     std::copy(rhs_members, rhs_members+size_, members_);
   }

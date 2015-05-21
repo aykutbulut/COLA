@@ -5,175 +5,167 @@
 // STDLIB headers
 #include <iomanip>
 #include <numeric>
+#include <cmath>
 
 #define WIDTH 10
+#define SPACE "          "
+#define LINE  "__________"
 
-void print1(OsiConicSimplexInterface * si);
-void print2(OsiConicSimplexInterface * si);
-void print_optimality_info(OsiConicSolverInterface * si);
-void print_solution(OsiConicSolverInterface * si);
-void print_basis_info(OsiConicSolverInterface * si);
-void print_reduced_cost(OsiConicSolverInterface * si);
-void print_tableau_info(OsiConicSolverInterface * si);
+void choose_cut_var(OsiConicSolverInterface * si, int & cut_cone, int & cut_var, int & cut_row);
 // cut method
-OsiConicCuts * MIR_cut(OsiConicSolverInterface * si, int cone_index);
+//for now it adds cuts directly to solver
+void add_MIR_cut(OsiConicSolverInterface * si, int cut_cone,
+		 int cut_var, int cut_row);
+double phi(double a, double alpha);
 
 int main(int argc, char ** argv) {
   OsiConicSolverInterface * si = new ColaModel();
-  //OsiSolverInterface * si = new OsiClpSolverInterface();
-  // querry whether simplex info available
-  std::cout << "Can do simplex interface? " << si->canDoSimplexInterface()
-	    << std::endl;
-  std::cout << "Is basis is available? " << si->basisIsAvailable()
-	    << std::endl;
-  std::cout << "Enabling simplex interface... " << std::endl;
-  si->enableSimplexInterface(1);
-  // Tells solver that calls to getBInv etc are about to take place.
-  std::cout << "Enabling factorization... " << std::endl;
-  si->enableFactorization();
   // read
   si->readMps(argv[1]);
-  // solve
+  // decide variable to generate cut, it should be a member of cone.
+  // decide row to use, it should have a nonzero coef for cut generating
+  // variable
+  int cut_cone = -1;
+  int cut_var = -1;
+  int cut_row = -1;
+  choose_cut_var(si, cut_cone, cut_var, cut_row);
+  std::cout << "Cut generating cone: " << cut_cone << std::endl;
+  std::cout << "Cut generating var : " << cut_var << std::endl;
+  std::cout << "Cut generating row : " << cut_row << std::endl;
+  // generte and add cuts
+  add_MIR_cut(si, cut_cone, cut_var, cut_row);
   si->initialSolve();
-  si->enableSimplexInterface(1);
-  // Tells solver that calls to getBInv etc are about to take place.
-  std::cout << "Enabling factorization... " << std::endl;
-  si->enableFactorization();
-  // print tableau
-  print1(si);
-  // time to cut
-
+  std::cout << "After cut objective: " << si->getObjValue() << std::endl;
+  // print objective after cut
+  dynamic_cast<ColaModel*>(si)->report_feasibility();
+  double const * sol = si->getColSolution();
+  for (int i=0; i<si->getNumCols(); ++i) {
+    std::cout << std::setw(WIDTH+5) << sol[i];
+  }
+  std::cout << std::endl;
+  //delete cuts;
   delete si;
   return 0;
 }
 
-void print_optimality_info(OsiConicSolverInterface * si) {
-  std::cout << "Is Optimality proven? " << si->isProvenOptimal()
-	    << std::endl;
-  std::cout << "Is primal infeasible? " << si->isProvenPrimalInfeasible()
-	    << std::endl;
-  std::cout << "Is dual infeasible?   " << si->isProvenPrimalInfeasible()
-	    << std::endl;
-  std::cout << "Optimal value is " << si->getObjValue() << std::endl;
-}
-
-void print_solution(OsiConicSolverInterface * si) {
-  int num_cols = si->getNumCols();
+void add_MIR_cut(OsiConicSolverInterface * si, int cut_cone, int cut_var, int cut_row) {
   int num_rows = si->getNumRows();
-  double const * sol = si->getColSolution();
-  std::cout << "Sol.   " << "|";
-  for (int i=0; i<num_cols; ++i)
-    std::cout << std::setw(WIDTH) << sol[i];
-  // print slack information
-  // compute row and then the difference with the left hand side
-  double const * act = si->getRowActivity();
-  char const * sense = si->getRowSense();
+  int num_cols = si->getNumCols();
+  //si->writeMps("mir_before_cut");
+  // add t rows
+  CoinPackedMatrix const * mat;
+  mat = si->getMatrixByRow();
   double const * rhs = si->getRightHandSide();
-  for (int i=0; i<num_rows; ++i)
-    std::cout << std::setw(WIDTH) << rhs[i]-act[i];
-  std::cout << std::endl;
-}
-
-void print_basis_info(OsiConicSolverInterface * si) {
-  // we print column status here but row status will be printed
-  // when we print the tableau
-  int num_cols = si->getNumCols();
-  int num_rows = si->getNumRows();
-  int * cstat = new int[num_cols];
-  int * rstat = new int[num_rows];
-  si->getBasisStatus(cstat, rstat);
-  std::cout << "Basis  " << "|";
-  for (int i=0; i<num_cols; ++i)
-    std::cout << std::setw(WIDTH) << cstat[i];
-  std::cout << std::endl;
-  delete[] rstat;
-  delete[] cstat;
-}
-
-void print_reduced_cost(OsiConicSolverInterface * si) {
-  int num_cols = si->getNumCols();
-  const double * rc = si->getReducedCost();
-  std::cout << "RCost  " << "|";
-  for (int i=0; i<num_cols; ++i)
-    std::cout << std::setw(WIDTH) << rc[i];
-  std::cout << std::endl;
-}
-
-void print_tableau_info(OsiConicSolverInterface * si) {
-  int num_cols = si->getNumCols();
-  int num_rows = si->getNumRows();
-  int * cstat = new int[num_cols];
-  int * rstat = new int[num_rows];
-  si->getBasisStatus(cstat, rstat);
-  double * row = new double[num_cols];
-  double * slack = new double[num_rows];
-  double const * act = si->getRowActivity();
-  char const * sense = si->getRowSense();
-  double const * rhs = si->getRightHandSide();
-  for (int i=0; i<num_rows; ++i) {
-    si->getBInvARow(i, row, slack);
-    // print BinvA
-    std::cout << "Row " << std::setw(3) << i << "|";
-    for (int j=0; j<num_cols; ++j) {
-      std::cout << std::setw(WIDTH) << row[j];
-    }
-    for (int j=0; j<num_rows; ++j) {
-      std::cout << std::setw(WIDTH) << slack[j];
-    }
-    // print Binv b
-    double * B_inv_row = new double[num_cols]();
-    si->getBInvRow(i, B_inv_row);
-    double val = std::inner_product(rhs, rhs+num_rows, B_inv_row, 0.0);
-    delete[] B_inv_row;
-    std::cout << "|" << std::setw(14) << val;
-    // print row activity
-    std::cout << "|" << std::setw(WIDTH) << act[i];
-    // pprint row sense
-    std::cout << "|" << std::setw(1) << sense[i];
-    // print rhs
-    std::cout << "|" << std::setw(WIDTH) << rhs[i];
-    // print row status information
-    std::cout << "|" << std::setw(1) << rstat[i];
-    std::cout << std::endl;
+  int first = mat->getVectorFirst(cut_row);
+  int last = mat->getVectorLast(cut_row);
+  int num_elem  = last-first;
+  int * cols = new int[num_elem];
+  double * value = new double[num_elem];
+  for (int j=first; j<last; ++j) {
+    cols[j-first] = mat->getIndices()[j];
+    value[j-first] = mat->getElements()[j];
+    if (cols[j-first]==cut_var)
+      value[j-first] = value[j-first]-1.0;
   }
-  delete[] cstat;
-  delete[] rstat;
-  delete[] row;
-  delete[] slack;
+  si->addRow(num_elem, cols, value, rhs[cut_row], si->getInfinity());
+  double * neg_value = new double[num_elem];
+  for (int i=0; i<num_elem; ++i) {
+    neg_value[i] = -value[i];
+  }
+  si->addRow(num_elem, cols, neg_value, -rhs[cut_row], si->getInfinity());
+  // add t columns
+  int t_e[2] = {num_rows, num_rows+1};
+  double t_v[2]  = {1.0, 1.0};
+  si->addCol(2, t_e, t_v, 0.0, si->getInfinity(), 0.0);
+  // add cut
+  int * cut_e = new int[num_elem+1];
+  double * cut_v = new double[num_elem+1];
+  std::copy(cols, cols+num_elem, cut_e);
+  // index of variable t
+  cut_e[num_elem] = num_cols;
+  double alpha = 1.5;
+  double f_alpha = rhs[cut_row]/alpha - floor(rhs[cut_row]/alpha);
+  for (int i=0; i<num_elem; ++i) {
+    if (si->isInteger(cols[i])) {
+      cut_v[i] = phi(value[i]/alpha, f_alpha);
+    }
+    else {
+      cut_v[i] = -1.0/abs(alpha);
+    }
+  }
+  cut_v[num_elem] = -1.0/abs(alpha);
+  si->addRow(num_elem+1, cut_e, cut_v, -si->getInfinity(), phi(rhs[cut_row]/alpha, f_alpha));
+  // modify cone
+  si->writeMps("mir_after_cut");
 }
 
-void print1(OsiConicSimplexInterface * si) {
-  print_optimality_info(si);
-  print_solution(si);
-  print_basis_info(si);
-  print_reduced_cost(si);
-  print_tableau_info(si);
+double phi(double a, double f) {
+  int n= floor(a);
+  double value;
+  if (a<n+f) {
+    value = (1-2*f)*n-(a-n);
+  }
+  else {
+    value = (1-2*f)*n+(a-n)-2*f;
+  }
+  return value;
 }
 
-void print2(OsiConicSimplexInterface * si) {
-}
-
-// MIT cut method, creates MIR cut for a given cone.
-// 1. first get simplex tableau
-// 2. Locate which variable in cone is a basic variable.
-// 3. Write basic variable in terms of the others.
-//
-//
-//
-//
-//
-// Keep a list of cuts that MIR is generted. We may not need to
-// insert t again.
-//
-
-OsiConicCuts * MIR_cut(OsiConicSolverInterface * si, int cone_index) {
-  OsiConicCuts * cuts = new OsiConicCuts();
-  // Get current basis status, if cstat==1 then basic
-  int num_rows = si->getNumRows();
+void choose_cut_var(OsiConicSolverInterface * si, int & cut_cone,
+		    int & cut_var, int & cut_row) {
+  int num_cones = si->getNumCones();
   int num_cols = si->getNumCols();
-  int * basis_index = new int[num_rows];
-  si->getBasics(basis_index);
-  // Get simplex tableau portion
-  delete[] basis_index;
-  return cuts;
+  int num_rows = si->getNumRows();
+  char const * row_sense = si->getRowSense();
+  // pick the first cone to generate cuts
+  cut_cone = 0;
+  OsiLorentzConeType cut_cone_type;
+  int cut_cone_size = -1;
+  int * cut_cone_members = 0;
+  si->getConicConstraint(cut_cone, cut_cone_type, cut_cone_size,
+			 cut_cone_members);
+  if (cut_cone_type!=OSI_QUAD) {
+    std::cerr << "We support cones in canonical form only." << std::endl;
+    throw "";
+  }
+  // pick first cont var in the cut cone
+  for(int i=1; i<cut_cone_size; ++i) {
+    if (!si->isInteger(cut_cone_members[i])) {
+      cut_var = cut_cone_members[i];
+      break;
+    }
+  }
+  // pick first row that has nonzero coef for cut_var
+  cut_row=-1;
+  CoinPackedMatrix const * mat;
+  mat = si->getMatrixByRow();
+  //double const * rhs_local = si->getRightHandSide();
+  for (int i=0; i<num_rows; ++i) {
+    if (row_sense[i]!='E')
+      continue;
+    int first = mat->getVectorFirst(i);
+    int last = mat->getVectorLast(i);
+    int num_elem  = last-first;
+    int * cols = new int[num_elem];
+    double * value = new double[num_elem];
+    // check if cut_var is in the row
+    int flag = 0;
+    for (int j=first; j<last; ++j) {
+      cols[j-first] = mat->getIndices()[j];
+      value[j-first] = mat->getElements()[j];
+      if (cols[j-first]==cut_var and value[j-first]!=0.0) {
+	flag=1;
+	break;
+      }
+    }
+    if (flag) {
+      cut_row=i;
+      break;
+    }
+  }
+  if (cut_row==-1) {
+    std::cerr << "We could not find a row that has variable " << cut_var << std::endl;
+    throw "";
+  }
+  delete[] cut_cone_members;
 }

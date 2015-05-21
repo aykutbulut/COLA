@@ -25,6 +25,11 @@ typedef enum {
 //
 
 
+// does the following make sense?
+// todo(aykut) when cola solve method is invoked it should create its own copy
+// of problem data and work on the copy. This is so since Cola modifies the
+// problem by adding approximating hyperplanes.
+
 class ColaModel: virtual public OsiConicSolverInterface,
 		 public OsiClpSolverInterface {
   // data members
@@ -114,6 +119,7 @@ public:
   virtual void getConeSize(int * size) const;
   virtual OsiConeType getConeType(int i) const;
   virtual void getConeType(OsiConeType * type) const;
+  virtual void getConeType(OsiLorentzConeType * type) const;
   virtual int readMps(const char * filename, const char * extension="mps");
   virtual void initialSolve();
   virtual void resolve();

@@ -15,7 +15,7 @@ public:
   LorentzCone(LorentzCone const & other);
   // copy assignment operator
   LorentzCone & operator=(LorentzCone const & rhs);
-  ~LorentzCone();
+  virtual ~LorentzCone();
   int const * members() const;
   // VIRTUAL FUNCTIONS
   // return pointer to a clone of this
