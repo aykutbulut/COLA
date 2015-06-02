@@ -1,3 +1,4 @@
+#include "ColaConfig.h"
 #include "ColaModel.hpp"
 #include "Cone.hpp"
 #include "LorentzCone.hpp"
@@ -18,11 +19,20 @@
 #include <string>
 #include <iostream>
 
-extern "C" {
-#include <atlas/clapack.h>
-}
+#ifndef ipfint
+//typedef ipfint FORTRAN_INTEGER_TYPE ;
+typedef int ipfint;
+typedef const int cipfint;
+#endif
 
-//extern   dposv_ (&uplo, &dim, &num_rhs, A, &dim, x, &dim, &info);
+// using simple lapack interface
+extern "C"
+{
+  /** LAPACK Fortran subroutine DPOSV. */
+  void F77_FUNC(dposv, DPOSV)(char * uplo, ipfint * n, ipfint * nrhs,
+                              double * A, ipfint * lda, double * B,
+                              ipfint * ldb, ipfint * info);
+}
 
 ColaModel::ColaModel() : OsiClpSolverInterface() {
   options_ = new Options();
@@ -1136,8 +1146,7 @@ ProblemStatus ColaModel::solve_numeric() {
 // solves system of symmertic positive definite Ax=b and store the solution
 // in x.
 void ColaModel::lapack_solve(double ** A, double * b, double * x, int dim) {
-  CBLAS_ORDER ao = CblasRowMajor;
-  CBLAS_UPLO uplo = CblasLower;
+  char uplo = 'L';
   int num_rhs = 1;
   int info;
   // copy b to x
@@ -1147,9 +1156,10 @@ void ColaModel::lapack_solve(double ** A, double * b, double * x, int dim) {
   for (int i=0; i<dim; ++i) {
     std::copy(A[i], A[i]+i+1, A_lower+(i*i+i)/2);
   }
-  // clapack_dposv(const enum ATLAS_ORDER Order, const enum ATLAS_UPLO Uplo,
-  //                const int N, const int NRHS, double *A, const int lda,
-  //                double *B, const int ldb);
-  clapack_dposv (ao, uplo, dim, num_rhs, A_lower, dim, x, dim);
+  F77_FUNC (dposv, DPOSV) (&uplo, &dim, &num_rhs, A_lower, &dim, x, &dim, &info);
+  if (info!=0) {
+    std::cerr << "Lapack dposv function failed." << std::endl;
+    throw std::exception();
+  }
   delete[] A_lower;
 }

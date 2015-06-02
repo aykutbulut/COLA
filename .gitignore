@@ -1,7 +1,3 @@
-# http://www.gnu.org/software/automake
-
-# http://www.gnu.org/software/autoconf
-
 /autom4te.cache
 /compile
 /stamp-h1
@@ -10,3 +6,39 @@
 *.o
 *.gz
 *.int
+
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# emacs backup files
+*~
+
+# external projects
+/BuildTools/*
+/CoinUtils/*
+/Osi/*
+/OsiConic/*
+/Clp/*
+/build/*
+/Data/*
+/ThirdParty/*
