@@ -7,6 +7,22 @@ lib_dir=${build_dir%%/}/lib
 pkg_dir=${lib_dir%%/}/pkgconfig
 PKG_CONFIG_PATH=${pkg_dir}:$PKG_CONFIG_PATH
 export CXXFLAGS=-std=c++11
+# # configure and install ThirdParty
+# mkdir -p ThirdParty/Blas
+# cd ThirdParty/Blas
+# ../../../ThirdParty/Blas/configure --prefix=$build_dir
+# make -j 10 install
+# cd ..
+# mkdir Lapack
+# cd Lapack
+# ../../../ThirdParty/Lapack/configure --prefix=$build_dir
+# make -j 10 install
+# cd ..
+# mkdir Glpk
+# cd Glpk
+# ../../../ThirdParty/Glpk/configure --prefix=$build_dir
+# make -j 10 install
+# cd ../..
 # configure and install CoinUtils
 mkdir CoinUtils
 cd CoinUtils
