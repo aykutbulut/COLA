@@ -1,6 +1,8 @@
-/autom4te.cache
-/compile
-/stamp-h1
+# autotools auxilary files
+*.m4
+autom4te.cache
+compile
+stamp-h1
 
 *.mps
 *.o
