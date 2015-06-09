@@ -7,7 +7,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 ########################################################################
-#                               libOsiConic                            #
+#                               libCola                                #
 ########################################################################
 
 # Name of the library compiled in this directory.  We want it to be installed

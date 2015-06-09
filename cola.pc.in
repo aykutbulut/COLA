@@ -1,12 +1,12 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
-includedir=@includedir@
+includedir=@includedir@/coin
 
 Name: Cola
 Description: Second Order Cone Optimization Solver
 URL: https://github.com/aykutbulut/Cola
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lCola
+Libs: -L${libdir} -lCola @COLALIB_PCLIBS@
 Cflags: -I${includedir}
-Requires: osiconic osi-clp osi coinutils
+Requires: @COLALIB_PCREQUIRES@
