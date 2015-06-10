@@ -87,6 +87,18 @@ AC_COIN_CHECK_PACKAGE_BLAS(ColaLib)
 AC_COIN_CHECK_PACKAGE_LAPACK(ColaLib)
 AC_COIN_CHECK_CXX_CHEADER(math)
 
+##############################################################################
+#                   VPATH links for example input files                      #
+##############################################################################
+# In case this is a VPATH configuration we need to make sure that the
+# input files for the examples are available in the VPATH directory.
+AC_COIN_VPATH_LINK(examples/input.mps)
+AC_COIN_VPATH_LINK(examples/canonical.mps)
+AC_COIN_VPATH_LINK(examples/mir_input.mps)
+AC_COIN_VPATH_LINK(examples/small.mps)
+AC_COIN_VPATH_LINK(examples/small2.mps)
+AC_COIN_VPATH_LINK(examples/small3.mps)
+
 #############################################################################
 #                  Check for doxygen                                        #
 #############################################################################
@@ -98,6 +110,7 @@ AC_COIN_DOXYGEN(CoinUtils Osi OsiConic)
 # Here list all the files that configure should create (except for the
 # configuration header file)
 AC_CONFIG_FILES([Makefile
+		 examples/Makefile
                  src/Makefile
                  cola.pc
                  cola-uninstalled.pc])

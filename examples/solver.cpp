@@ -1,3 +1,7 @@
+// simple second order cone optimization solver
+// that reads mosek type mps inputs.
+//
+
 #include <ColaModel.hpp>
 
 int main(int argc, char ** argv) {

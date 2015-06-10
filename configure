@@ -30550,6 +30550,83 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+##############################################################################
+#                   VPATH links for example input files                      #
+##############################################################################
+# In case this is a VPATH configuration we need to make sure that the
+# input files for the examples are available in the VPATH directory.
+
+echo "$as_me:$LINENO: checking whether this is a VPATH configuration" >&5
+echo $ECHO_N "checking whether this is a VPATH configuration... $ECHO_C" >&6
+if test `cd $srcdir; pwd` != `pwd`; then
+  coin_vpath_config=yes;
+else
+  coin_vpath_config=no;
+fi
+echo "$as_me:$LINENO: result: $coin_vpath_config" >&5
+echo "${ECHO_T}$coin_vpath_config" >&6
+
+
+
+# Allow for newlines in the parameter
+if test $coin_vpath_config = yes; then
+  cvl_tmp="examples/input.mps"
+  for file in $cvl_tmp ; do
+    coin_vpath_link_files="$coin_vpath_link_files $file"
+  done
+fi
+
+
+
+# Allow for newlines in the parameter
+if test $coin_vpath_config = yes; then
+  cvl_tmp="examples/canonical.mps"
+  for file in $cvl_tmp ; do
+    coin_vpath_link_files="$coin_vpath_link_files $file"
+  done
+fi
+
+
+
+# Allow for newlines in the parameter
+if test $coin_vpath_config = yes; then
+  cvl_tmp="examples/mir_input.mps"
+  for file in $cvl_tmp ; do
+    coin_vpath_link_files="$coin_vpath_link_files $file"
+  done
+fi
+
+
+
+# Allow for newlines in the parameter
+if test $coin_vpath_config = yes; then
+  cvl_tmp="examples/small.mps"
+  for file in $cvl_tmp ; do
+    coin_vpath_link_files="$coin_vpath_link_files $file"
+  done
+fi
+
+
+
+# Allow for newlines in the parameter
+if test $coin_vpath_config = yes; then
+  cvl_tmp="examples/small2.mps"
+  for file in $cvl_tmp ; do
+    coin_vpath_link_files="$coin_vpath_link_files $file"
+  done
+fi
+
+
+
+# Allow for newlines in the parameter
+if test $coin_vpath_config = yes; then
+  cvl_tmp="examples/small3.mps"
+  for file in $cvl_tmp ; do
+    coin_vpath_link_files="$coin_vpath_link_files $file"
+  done
+fi
+
+
 #############################################################################
 #                  Check for doxygen                                        #
 #############################################################################
@@ -30777,7 +30854,7 @@ done
 ##############################################################################
 # Here list all the files that configure should create (except for the
 # configuration header file)
-                                        ac_config_files="$ac_config_files Makefile src/Makefile cola.pc cola-uninstalled.pc"
+                                                  ac_config_files="$ac_config_files Makefile examples/Makefile src/Makefile cola.pc cola-uninstalled.pc"
 
 
           ac_config_files="$ac_config_files doxydoc/doxygen.conf"
@@ -31582,6 +31659,7 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+  "examples/Makefile" ) CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "cola.pc" ) CONFIG_FILES="$CONFIG_FILES cola.pc" ;;
   "cola-uninstalled.pc" ) CONFIG_FILES="$CONFIG_FILES cola-uninstalled.pc" ;;

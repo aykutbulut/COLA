@@ -1,3 +1,21 @@
+// Generates MIR cuts.
+//
+// we have problem in folloeing form
+// Ax = b
+// x in L
+//
+// for a variable k and row l we have
+// x_k = b_l -(a_l-e_k)x.
+// we can use this row to generate MIR cut.
+//
+// Following is a re-formulation.
+// t_k >= |b_l -(a_l-e_k)x|
+// (x_1,...,x_k,...,x_n) in L
+//
+// We can generate MIR cut from the polyhedral conic constraint.
+//
+
+
 #include <ColaModel.hpp>
 // OsiConic headers
 #include <OsiConicSolverInterface.hpp>

@@ -56,9 +56,10 @@ DIST_COMMON = README $(am__configure_deps) \
 	$(srcdir)/BuildTools/Makemain.inc $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/cola-uninstalled.pc.in \
 	$(srcdir)/cola.pc.in $(top_srcdir)/configure \
-	$(top_srcdir)/doxydoc/doxygen.conf.in AUTHORS COPYING \
-	ChangeLog INSTALL NEWS TODO config.guess config.sub depcomp \
-	install-sh ltmain.sh missing
+	$(top_srcdir)/doxydoc/doxygen.conf.in \
+	$(top_srcdir)/examples/Makefile.in AUTHORS COPYING ChangeLog \
+	INSTALL NEWS TODO config.guess config.sub depcomp install-sh \
+	ltmain.sh missing
 @HAVE_EXTERNALS_TRUE@am__append_1 = Dependencies
 @HAVE_EXTERNALS_TRUE@am__append_2 = .Dependencies-stamp
 subdir = .
@@ -72,7 +73,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.h \
 	$(top_builddir)/src/config_cola.h
-CONFIG_CLEAN_FILES = cola.pc cola-uninstalled.pc doxydoc/doxygen.conf
+CONFIG_CLEAN_FILES = examples/Makefile cola.pc cola-uninstalled.pc \
+	doxydoc/doxygen.conf
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -390,6 +392,8 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+examples/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/Makefile.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 cola.pc: $(top_builddir)/config.status $(srcdir)/cola.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 cola-uninstalled.pc: $(top_builddir)/config.status $(srcdir)/cola-uninstalled.pc.in
@@ -559,7 +563,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/BuildTools $(distdir)/doxydoc
+	$(mkdir_p) $(distdir)/. $(distdir)/BuildTools $(distdir)/doxydoc $(distdir)/examples
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
