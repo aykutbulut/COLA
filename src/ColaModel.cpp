@@ -166,6 +166,20 @@ void ColaModel::addConicConstraint(OsiLorentzConeType type,
     t = RLORENTZ;
   Cone * c = new LorentzCone(t, numMembers, members);
   cones_.push_back(c);
+  // resize cut array sizes
+  // copy old num_cuts
+  int num_cones = cones_.size();
+  int * new_num_cuts = new int[num_cones];
+  std::copy(num_cuts_, num_cuts_+num_cones-1, new_num_cuts);
+  delete[] num_cuts_;
+  num_cuts_ = new_num_cuts;
+  num_cuts_[num_cones-1] = 0;
+  // copy old num_supports
+  int * new_num_supports = new int[num_cones];
+  std::copy(num_supports_, num_supports_+num_cones-1, new_num_supports);
+  delete[] num_supports_;
+  num_supports_ = new_num_supports;
+  num_supports_[num_cones-1] = 0;
 }
 
 
