@@ -139,10 +139,9 @@ OsiConicSolverInterface * ColaModel::clone (bool copyData) const {
 
 ColaModel::~ColaModel() {
   // free conic constraints
-  // std::vector<Cone*>::iterator it;
-  // for (it=cones_.begin(); it!=cones_.end(); it++) {
-  //   delete *it;
-  // }
+  for (int i=0; i<cones_.size(); ++i) {
+    delete cones_[i];
+  }
   cones_.clear();
   // free rest
   if(num_cuts_) {
