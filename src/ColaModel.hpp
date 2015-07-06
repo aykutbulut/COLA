@@ -123,6 +123,7 @@ public:
   virtual int readMps(const char * filename, const char * extension="mps");
   virtual void initialSolve();
   virtual void resolve();
+  virtual void solveFromHotStart();
   virtual OsiConicSolverInterface * clone (bool copyData=true) const;
   // END OF VIRTUAL FUNCTIONS
   // solves problem using ben-tal nemirovski approximation
