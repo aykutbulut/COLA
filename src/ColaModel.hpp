@@ -123,6 +123,10 @@ public:
   virtual int readMps(const char * filename, const char * extension="mps");
   virtual void initialSolve();
   virtual void resolve();
+  // mark hot start, does nothing for now
+  virtual void markHotStart();
+  /// Delete the hot start snapshot.
+  virtual void unmarkHotStart();
   virtual void solveFromHotStart();
   virtual OsiConicSolverInterface * clone (bool copyData=true) const;
   // END OF VIRTUAL FUNCTIONS

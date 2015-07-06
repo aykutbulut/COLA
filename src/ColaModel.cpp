@@ -1177,6 +1177,14 @@ void ColaModel::lapack_solve(double ** A, double * b, double * x, int dim) {
   delete[] A_lower;
 }
 
+// todo(aykut) does nothing for now
+void ColaModel::markHotStart() {
+}
+
+/// Delete the hot start snapshot.
+void ColaModel::unmarkHotStart() {
+}
+
 // todo(aykut) hot start solve calls resolve for now.
 void ColaModel::solveFromHotStart() {
   resolve();
