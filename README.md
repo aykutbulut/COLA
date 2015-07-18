@@ -1,4 +1,4 @@
-COLA
+COLA [![Build Status](https://travis-ci.org/aykutbulut/COLA.svg?branch=master)](https://travis-ci.org/aykutbulut/COLA)
 ====
 
 Conic Optimization using Linear Approximation
