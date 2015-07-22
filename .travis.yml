@@ -4,11 +4,15 @@ compiler:
   - gcc
 
 before_script:
+  - svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Blas/stable/1.4 ThirdParty/Blas
+  - svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Lapack/stable/1.5 ThirdParty/Lapack
   - svn co https://projects.coin-or.org/svn/CoinUtils/stable/2.10/CoinUtils CoinUtils
   - svn co https://projects.coin-or.org/svn/Osi/stable/0.107/Osi Osi
   - svn co https://projects.coin-or.org/svn/Clp/stable/1.16/Clp Clp
   - git clone https://github.com/aykutbulut/OSI-CONIC OsiConic
   - mkdir build
+  - cd Thirdparty/Blas && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ../..
+  - cd Thirdparty/Lapack && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ../..
   - cd CoinUtils && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
   - cd Osi && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
   - cd Clp && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
