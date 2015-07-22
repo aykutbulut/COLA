@@ -11,8 +11,8 @@ before_script:
   - svn co https://projects.coin-or.org/svn/Clp/stable/1.16/Clp Clp
   - git clone https://github.com/aykutbulut/OSI-CONIC OsiConic
   - mkdir build
-  - cd ThirdParty/Blas && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ../..
-  - cd ThirdParty/Lapack && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ../..
+  - cd ThirdParty/Blas && ./get.Blas && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ../..
+  - cd ThirdParty/Lapack && ./get.Lapack && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ../..
   - cd CoinUtils && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
   - cd Osi && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
   - cd Clp && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
