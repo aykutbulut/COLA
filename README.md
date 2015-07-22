@@ -1,12 +1,28 @@
 COLA [![Build Status](https://travis-ci.org/aykutbulut/COLA.svg?branch=master)](https://travis-ci.org/aykutbulut/COLA)
 ====
-
 Conic Optimization using Linear Approximation
+
+Abbreviations:
+===
+Cola (Conic Optimization with Linear Approximation)
+Soco (Second Order Conic Optimization)
+
+Description:
+===
+Cola is a solver to solve SOCO problems. It can be used as a standalone solver
+or as a library. Developed by Aykut Bulut and his advisor Ted Ralphs.
+Conceptual desing is inspired by Aykut's commitee, Pietro Belotti,
+Julio C. Goez, Tamas Terlaky, Ted Ralphs and Luis Zuluaga.
+
+How to use cola:
+===
+It is pretty straightforward. Cola do not except any options for now. Cola
+solves a conic mps file given as an argument.
+
+Example use:
+==
+cola ex1.mps
 
 INSTALL
 ====
-After pulling Cola, run the following commands.<br />
-cd COLA <br />
-./get_dependencies.sh <br />
-./compile.sh <br />
-get_dependencies.sh will download Osi, CoinUtils, OsiConic and Clp. compile.sh will compile dependencies and Cola and it will install dependency libraries and Cola library to COLA/build/lib. Header files will be installed to COLA/build/include/coin. Pkg-config .pc files will be installed to COLA/build/lib/pkgconfig.
+See INSTALL file.

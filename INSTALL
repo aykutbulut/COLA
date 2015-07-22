@@ -1,6 +1,24 @@
-Installation Instructions
-*************************
+===============================================================================
+Basic Installation Instructions
+===============================================================================
+Run the following command in COLA directory.
 
+./get_dependencies.sh && compile.sh
+
+get_dependencies.sh will download Osi, CoinUtils, OsiConic and Clp. compile.sh
+will compile dependencies and Cola and it will install dependency libraries and
+Cola library to COLA/build/lib. Header files will be installed to
+COLA/build/include/coin. Pkg-config .pc files will be installed to
+COLA/build/lib/pkgconfig.
+
+Then you can run cola on mps files using the following command.
+
+./build/bin/cola ex.mps
+
+
+===============================================================================
+Advanced Installation Instructions
+===============================================================================
 Dependencies:
 You should make sure that the following libraries can be accessed through pkg-config;
 osi-clp, osi, coinutils.
