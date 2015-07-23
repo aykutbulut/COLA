@@ -3,6 +3,9 @@ language: cpp
 compiler:
   - gcc
 
+before_install:
+  - sudo apt-get install gfortran g77
+  
 before_script:
   - svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Blas/stable/1.4 ThirdParty/Blas
   - svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Lapack/stable/1.5 ThirdParty/Lapack
