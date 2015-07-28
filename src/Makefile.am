@@ -43,7 +43,8 @@ libCola_la_LDFLAGS = $(LT_LDFLAGS)
 AM_CPPFLAGS = $(COINUTILS_CFLAGS)\
 	 $(OSI_CFLAGS)\
 	 $(OSICONIC_CFLAGS)\
-	 $(OSICLP_CFLAGS)
+	 $(OSICLP_CFLAGS)\
+	 $(IPOPT_CFLAGS)
 
 ########################################################################
 #                            cola program                              #

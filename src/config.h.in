@@ -12,6 +12,9 @@
 /* Define to 1 if the CoinUtils package is available */
 #undef COIN_HAS_COINUTILS
 
+/* Define to 1 if the Ipopt package is available */
+#undef COIN_HAS_IPOPT
+
 /* If defined, the LAPACK Library is available. */
 #undef COIN_HAS_LAPACK
 
