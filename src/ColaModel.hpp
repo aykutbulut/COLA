@@ -121,6 +121,7 @@ public:
   virtual void getConeType(OsiConeType * type) const;
   virtual void getConeType(OsiLorentzConeType * type) const;
   virtual int readMps(const char * filename, const char * extension="mps");
+  virtual void initialSolveOA();
   virtual void initialSolve();
   virtual void resolve();
   // mark hot start, does nothing for now

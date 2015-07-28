@@ -247,7 +247,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
   // properly. This is a problem when the user does not read problem from mps
   // file but builds the model herself using cola as a library.
   if (num_cuts_==0)
-    initialSolve();
+    initialSolveOA();
 
   // solve linear problem
   bool feasible = false;
@@ -443,7 +443,7 @@ void ColaModel::report_feasibility() const {
   }
 }
 
-void ColaModel::initialSolve() {
+void ColaModel::initialSolveOA() {
   int nOfCones = getNumCones();
   if (num_cuts_==0) {
     num_cuts_ = new int[nOfCones]();
@@ -1188,4 +1188,9 @@ void ColaModel::unmarkHotStart() {
 // todo(aykut) hot start solve calls resolve for now.
 void ColaModel::solveFromHotStart() {
   resolve();
+}
+
+// uses Ipopt to solve problem.
+void ColaModel::initialSolve() {
+  // create
 }
