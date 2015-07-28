@@ -47,6 +47,12 @@ cd OsiConic
 ../../OsiConic/configure --prefix=$build_dir
 make -j 10 install
 cd ..
+#configure and install Ipopt
+mkdir Ipopt
+cd Ipopt
+../../Ipopt/configure --prefix=$build_dir
+make -j 10 install
+cd ..
 #configure and install Cola
 mkdir Cola
 cd Cola
