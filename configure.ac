@@ -83,12 +83,20 @@ if test $coin_has_osiconic != yes ; then
   AC_MSG_ERROR([Required package OsiConic not available.])
 fi
 AC_COIN_CHECK_PACKAGE(Ipopt,  [ipopt],  [ColaLib])
-if test $coin_has_osiconic != yes ; then
+if test $coin_has_ipopt != yes ; then
   AC_MSG_ERROR([Required package Ipopt not available.])
+fi
+AC_COIN_CHECK_PACKAGE(OsiIpopt,  [osiipopt],  [ColaLib])
+if test $coin_has_osiipopt != yes ; then
+  AC_MSG_ERROR([Required package OsiIpopt not available.])
 fi
 
 AC_COIN_CHECK_PACKAGE_BLAS(ColaLib)
 AC_COIN_CHECK_PACKAGE_LAPACK(ColaLib)
+AC_COIN_CHECK_PACKAGE(ASL,   [coinasl],   [ColaLib])
+AC_COIN_CHECK_PACKAGE(HSL,   [coinhsl >= 1.3],   [ColaLib])
+AC_COIN_CHECK_PACKAGE(Mumps, [coinmumps], [ColaLib])
+
 AC_COIN_CHECK_CXX_CHEADER(math)
 
 ##############################################################################
@@ -106,7 +114,7 @@ AC_COIN_VPATH_LINK(examples/small3.mps)
 #############################################################################
 #                  Check for doxygen                                        #
 #############################################################################
-AC_COIN_DOXYGEN(CoinUtils Osi OsiConic Ipopt)
+AC_COIN_DOXYGEN(CoinUtils Osi OsiConic Ipopt OsiIpopt)
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #

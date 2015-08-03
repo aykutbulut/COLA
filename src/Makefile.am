@@ -44,7 +44,8 @@ AM_CPPFLAGS = $(COINUTILS_CFLAGS)\
 	 $(OSI_CFLAGS)\
 	 $(OSICONIC_CFLAGS)\
 	 $(OSICLP_CFLAGS)\
-	 $(IPOPT_CFLAGS)
+	 $(IPOPT_CFLAGS)\
+	 $(OSIIPOPT_CFLAGS)
 
 ########################################################################
 #                            cola program                              #

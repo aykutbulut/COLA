@@ -6,17 +6,26 @@
 /* Define to the debug verbosity level (0 is no output) */
 #undef COIN_COLA_VERBOSITY
 
+/* Define to 1 if the ASL package is available */
+#undef COIN_HAS_ASL
+
 /* If defined, the BLAS Library is available. */
 #undef COIN_HAS_BLAS
 
 /* Define to 1 if the CoinUtils package is available */
 #undef COIN_HAS_COINUTILS
 
+/* Define to 1 if the HSL package is available */
+#undef COIN_HAS_HSL
+
 /* Define to 1 if the Ipopt package is available */
 #undef COIN_HAS_IPOPT
 
 /* If defined, the LAPACK Library is available. */
 #undef COIN_HAS_LAPACK
+
+/* Define to 1 if the Mumps package is available */
+#undef COIN_HAS_MUMPS
 
 /* Define to 1 if the Osi package is available */
 #undef COIN_HAS_OSI
@@ -26,6 +35,9 @@
 
 /* Define to 1 if the OsiConic package is available */
 #undef COIN_HAS_OSICONIC
+
+/* Define to 1 if the OsiIpopt package is available */
+#undef COIN_HAS_OSIIPOPT
 
 /* SVN revision number of project */
 #undef COLA_SVN_REV
