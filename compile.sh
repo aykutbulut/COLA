@@ -17,12 +17,22 @@ mkdir Lapack
 cd Lapack
 ../../../ThirdParty/Lapack/configure --prefix=$build_dir
 make -j 10 install
+cd ..
+mkdir HSL
+cd HSL
+../../../ThirdParty/HSL/configure --prefix=$build_dir
+make -j 10 install
+cd ..
+mkdir Metis
+cd Metis
+../../../ThirdParty/Metis/configure --prefix=$build_dir
+make -j 10 install
+cd ..
+mkdir Mumps
+cd Mumps
+../../../ThirdParty/Mumps/configure --prefix=$build_dir
+make -j 10 install
 cd ../..
-# mkdir Glpk
-# cd Glpk
-# ../../../ThirdParty/Glpk/configure --prefix=$build_dir
-# make -j 10 install
-# cd ../..
 # configure and install CoinUtils
 mkdir CoinUtils
 cd CoinUtils
@@ -53,6 +63,24 @@ cd Ipopt
 ../../Ipopt/configure --prefix=$build_dir
 make -j 10 install
 cd ..
+#configure and install Ipopt
+mkdir OsiIpopt
+cd OsiIpopt
+../../OsiIpopt/configure --prefix=$build_dir
+make -j 10 install
+cd ..
+### configure and install OsiMosek, uncomment if you have mosek
+# mkdir OsiMosek
+# cd OsiMosek
+# ../../OsiMosek/configure --prefix=$build_dir
+# make -j 10 install
+# cd ..
+### configure and install OsiCplex, uncomment if you have cplex
+# mkdir OsiCplex
+# cd OsiCplex
+# ../../OsiCplex/configure --prefix=$build_dir
+# make -j 10 install
+# cd ..
 #configure and install Cola
 mkdir Cola
 cd Cola
