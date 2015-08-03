@@ -12,6 +12,8 @@
 #include <CoinPackedMatrix.hpp>
 #include <CoinPackedVector.hpp>
 
+#include <OsiIpoptSolverInterface.hpp>
+
 #include <cstring>
 #include <iomanip>
 #include <numeric>
@@ -1192,5 +1194,27 @@ void ColaModel::solveFromHotStart() {
 
 // uses Ipopt to solve problem.
 void ColaModel::initialSolve() {
-  // create
+#if defined(__CPLEX__)
+#endif
+#if defined(__MOSEK__)
+#endif
+  // create ipopt object
+  OsiConicSolverInterface * ipopt_solver = new OsiIpoptSolverInterface(this);
+  ipopt_solver->initialSolve();
+  double const * sol = ipopt_solver->getColSolution();
+  delete ipopt_solver;
+  // approximate cones around the solution
+  std::vector<Cone*>::const_iterator it;
+  OsiCuts * cuts = new OsiCuts();
+  for (it=cones_.begin(); it!=cones_.end(); ++it) {
+    (*it)->approximate(sol, cuts);
+  }
+  // apply cuts
+  OsiClpSolverInterface::applyCuts(*cuts, 0.0);
+}
+
+// approximate conic constraints around the given solution.
+// for now just add necessary supporting hyperplanes around the solution.
+void ColaModel::relax(double const * sol) {
+
 }

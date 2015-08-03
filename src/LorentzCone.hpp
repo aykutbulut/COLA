@@ -42,7 +42,12 @@ public:
   // reduces conic constraint to a set of conic constraints of smaller size.
   // used for bet-tal nemirovski method
   virtual std::vector<Cone*> reduce() const;
-
+  // approximate the cone around given point.
+  // If given point is in interior do nothing.
+  // if it is on the boundry add support
+  // We do not expect it to be infeasible for now. This may change in future
+  // in case of infeasibility we will just call separate routine.
+  virtual void approximate(double const * sol, OsiCuts * cuts);
 };
 
 #endif

@@ -69,6 +69,8 @@ protected:
   ProblemStatus solve(bool resolve);
   // solve symmetric positive definite linear system Ax=b
   void lapack_solve(double ** A, double * b, double * x, int dim);
+  // relax around a given solution, inserts
+  void relax(double const * sol);
 public:
   // default constructor
   ColaModel();

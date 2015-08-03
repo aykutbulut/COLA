@@ -6,6 +6,13 @@
 #include <set>
 #include <iomanip>
 
+#ifndef COIN_DBL_MAX
+#define INFINITY DBL_MAX
+#else
+#define INFINITY COIN_DBL_MAX
+#endif
+
+
 LorentzCone::LorentzCone(ConeType type, int size, int const * members)
   : Cone(type) {
   if (type==SCALED) {
@@ -339,4 +346,55 @@ void LorentzCone::relax (ColaModel & model) const {
 std::vector<Cone*> LorentzCone::reduce() const {
   std::cerr << "Not implemented yet." << std::endl;
   throw std::exception();
+}
+
+// approximate the cone around given point.
+// If given point is in interior do nothing.
+// if it is on the boundry add support
+// We do not expect it to be infeasible for now. This may change in future
+// in case of infeasibility we will just call separate routine.
+// feas of given solution:
+// Note that the numerical accuracy of the input sol
+// depends on the underlying solver that created sol, and
+// its accuracy level set.
+// current strategy:
+// the point we are given is not very close to the boundry
+// do a computationally cheap projection of the point to te boundry
+// and generate cuts that support cone.
+// For now we just increase leadin var and project the point to the boundry.
+void LorentzCone::approximate(double const * sol, OsiCuts * cuts) {
+  // todo(aykut) improve accuracy of given solution
+  // we do nothing for this for now.
+  // coef array, [2x1, -2x2, -2x3, ... -2xn]
+  double * coef = new double[size_];
+  double * p = new double[size_];
+  for (int i=0; i<size_; ++i) {
+    p[i] = sol[members_[i]];
+  }
+  // 2. compute coefficient from given solution
+  if (type()==LORENTZ) {
+    // cone is in canonical form
+    for (int i=1; i<size_; ++i) {
+      coef[i] = 2.0*p[i];
+    }
+    coef[0] = -2.0*p[0];
+  }
+  else if (type()==RLORENTZ) {
+    // map solution from RLORENTZ space to LORENTZ space, find the projection
+    // on LORENTZ, project this point to RLORENTZ and generate cut
+    // cone is a rotated cone
+    // generate cut from xbar
+    coef[0] = -2.0*p[1];
+    coef[1] = -2.0*p[0];
+    for (int i=2; i<size_; ++i) {
+      coef[i] = 2.0*p[i];
+    }
+  }
+  // rhs is allways 0.0
+  OsiRowCut * cut = new OsiRowCut();
+  cut->setRow(size_, members_, coef);
+  cuts->insert(*cut);
+  delete[] coef;
+  delete[] p;
+  delete cut;
 }

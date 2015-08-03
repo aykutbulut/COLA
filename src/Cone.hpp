@@ -4,6 +4,8 @@
 // CoinUtils headers
 #include <CoinPackedVector.hpp>
 #include <OsiSolverInterface.hpp>
+#include <OsiRowCut.hpp>
+#include <OsiCuts.hpp>
 // Cola headers
 #include "Options.hpp"
 
@@ -54,6 +56,12 @@ public:
   // reduces conic constraint to a set of conic constraints of smaller size.
   // used for bet-tal nemirovski method
   virtual std::vector<Cone*> reduce() const = 0;
+  // approximate the cone around given point.
+  // If given point is in interior do nothing.
+  // if it is on the boundry add support
+  // We do not expect it to be infeasible for now. This may change in future
+  // in case of infeasibility we will just call separate routine.
+  virtual void approximate(double const * sol, OsiCuts * cuts) = 0;
 };
 
 #endif

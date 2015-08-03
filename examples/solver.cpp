@@ -12,6 +12,11 @@ int main(int argc, char ** argv) {
             << std::endl;
   std::cout << "Number of iterations is " << m->getIterationCount()
             << std::endl;
+  m->initialSolveOA();
+  std::cout << "Optimal Solution is " << m->getObjValue()
+            << std::endl;
+  std::cout << "Number of iterations is " << m->getIterationCount()
+            << std::endl;
   delete m;
   return 0;
 }
