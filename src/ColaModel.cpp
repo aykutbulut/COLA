@@ -1203,6 +1203,12 @@ void ColaModel::initialSolve() {
   ipopt_solver->initialSolve();
   double const * sol = ipopt_solver->getColSolution();
   delete ipopt_solver;
+  relax(sol);
+}
+
+// approximate conic constraints around the given solution.
+// for now just add necessary supporting hyperplanes around the solution.
+void ColaModel::relax(double const * sol) {
   // approximate cones around the solution
   std::vector<Cone*>::const_iterator it;
   OsiCuts * cuts = new OsiCuts();
@@ -1211,10 +1217,4 @@ void ColaModel::initialSolve() {
   }
   // apply cuts
   OsiClpSolverInterface::applyCuts(*cuts, 0.0);
-}
-
-// approximate conic constraints around the given solution.
-// for now just add necessary supporting hyperplanes around the solution.
-void ColaModel::relax(double const * sol) {
-
 }
