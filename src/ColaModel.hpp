@@ -69,8 +69,8 @@ protected:
   ProblemStatus solve(bool resolve);
   // solve symmetric positive definite linear system Ax=b
   void lapack_solve(double ** A, double * b, double * x, int dim);
-  // relax around a given solution, inserts
-  void relax(double const * sol);
+  // approximate conic constraitns around a given solution, inserts
+  void approximate(double const * sol);
 public:
   // default constructor
   ColaModel();
@@ -143,6 +143,14 @@ public:
   virtual void writeMps(const char * filename,
 			const char * extension = "mps",
 			double objSense=0.0) const;
+  // solution status querry functions
+  virtual bool isAbandoned() const;
+  virtual bool isProvenOptimal() const;
+  virtual bool isProvenPrimalInfeasible() const;
+  virtual bool isProvenDualInfeasible() const;
+  virtual bool isPrimalObjectiveLimitReached() const;
+  virtual bool isDualObjectiveLimitReached() const;
+  virtual bool isIterationLimitReached() const;
 };
 
 #endif

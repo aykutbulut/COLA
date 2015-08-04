@@ -1201,14 +1201,39 @@ void ColaModel::initialSolve() {
   // create ipopt object
   OsiConicSolverInterface * ipopt_solver = new OsiIpoptSolverInterface(this);
   ipopt_solver->initialSolve();
+  // more than one of the following conditions may be true but this is OK for
+  // now.
+  if (ipopt_solver->isAbandoned()) {
+    soco_status_ = ABANDONED;
+  }
+  else if (ipopt_solver->isProvenOptimal()) {
+    soco_status_ = OPTIMAL;
+  }
+  else if (ipopt_solver->isProvenPrimalInfeasible()) {
+    soco_status_ = PRIMAL_INFEASIBLE;
+  }
+  else if (ipopt_solver->isProvenDualInfeasible()) {
+    soco_status_ = DUAL_INFEASIBLE;
+  }
+  else if (ipopt_solver->isPrimalObjectiveLimitReached()) {
+    soco_status_= PRIMAL_OBJECTIVE_LIMIT_REACHED;
+  }
+  else if (ipopt_solver->isDualObjectiveLimitReached()) {
+    soco_status_= DUAL_OBJECTIVE_LIMIT_REACHED;
+  }
+  else if (ipopt_solver->isIterationLimitReached()) {
+    soco_status_= ITERATION_LIMIT_REACHED;
+  }
+  // get ipopt solution
   double const * sol = ipopt_solver->getColSolution();
   delete ipopt_solver;
-  relax(sol);
+  // relax conic constraints using ipopt solution
+  approximate(sol);
 }
 
 // approximate conic constraints around the given solution.
 // for now just add necessary supporting hyperplanes around the solution.
-void ColaModel::relax(double const * sol) {
+void ColaModel::approximate(double const * sol) {
   // approximate cones around the solution
   std::vector<Cone*>::const_iterator it;
   OsiCuts * cuts = new OsiCuts();
@@ -1218,3 +1243,53 @@ void ColaModel::relax(double const * sol) {
   // apply cuts
   OsiClpSolverInterface::applyCuts(*cuts, 0.0);
 }
+
+bool ColaModel::isAbandoned() const {
+  if (soco_status_==ABANDONED)
+    return true;
+  else
+    return false;
+}
+
+bool ColaModel::isProvenOptimal() const {
+  if (soco_status_==OPTIMAL)
+    return true;
+  else
+    return false;
+}
+
+bool ColaModel::isProvenPrimalInfeasible() const {
+  if (soco_status_==PRIMAL_INFEASIBLE)
+    return true;
+  else
+    return false;
+}
+
+bool ColaModel::isProvenDualInfeasible() const {
+  if (soco_status_==DUAL_INFEASIBLE)
+    return true;
+  else
+    return false;
+}
+
+bool ColaModel::isPrimalObjectiveLimitReached() const {
+  if (soco_status_==PRIMAL_OBJECTIVE_LIMIT_REACHED)
+    return true;
+  else
+    return false;
+}
+
+bool ColaModel::isDualObjectiveLimitReached() const {
+  if (soco_status_==DUAL_OBJECTIVE_LIMIT_REACHED)
+    return true;
+  else
+    return false;
+}
+
+bool ColaModel::isIterationLimitReached() const {
+  if (soco_status_==ITERATION_LIMIT_REACHED)
+    return true;
+  else
+    return false;
+}
+
