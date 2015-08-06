@@ -47,6 +47,7 @@ class ColaModel: virtual public OsiConicSolverInterface,
   // total number of supports
   int total_num_supports_;
   double * imp_solution_;
+  bool first_solve_;
   // PRIVATE FUNCTIONS
   // reduce conic constraint given by size and members to smaller cones, save
   // them in reduced_cone

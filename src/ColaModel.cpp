@@ -45,6 +45,7 @@ ColaModel::ColaModel() : OsiClpSolverInterface() {
   num_lp_solved_ = 0;
   imp_solution_ = 0;
   cones_.clear();
+  first_solve_ = true;
   // this is the default beavior, user can change this using options
   setHintParam(OsiDoReducePrint,true,OsiHintTry);
   // for unboundedness directions set option
@@ -62,6 +63,7 @@ ColaModel::ColaModel(char * data_file) : OsiClpSolverInterface() {
   // this is the default beavior, user can change this using options
   setHintParam(OsiDoReducePrint,true,OsiHintTry);
   cones_.clear();
+  first_solve_ = true;
   OsiConicSolverInterface::readMps(data_file);
   OsiClpSolverInterface::getModelPtr()->setMoreSpecialOptions(0);
 }
@@ -91,6 +93,7 @@ ColaModel::ColaModel(ColaModel const & other): OsiClpSolverInterface(other) {
 	    num_supports_);
   total_num_supports_ = other.total_num_supports();
   imp_solution_ = 0;
+  first_solve_ = true;
 }
 
 // copy assignment operator
@@ -124,6 +127,7 @@ ColaModel & ColaModel::operator=(ColaModel const & rhs) {
 	    num_supports_);
   total_num_supports_ = rhs.total_num_supports();
   imp_solution_ = 0;
+  first_solve_ = true;
   return *this;
 }
 
@@ -248,9 +252,19 @@ ProblemStatus ColaModel::solve(bool resolve) {
   // todo(aykut) now we should check if the cone related data is initialized
   // properly. This is a problem when the user does not read problem from mps
   // file but builds the model herself using cola as a library.
-  if (num_cuts_==0)
-    initialSolveOA();
-
+  if (num_cuts_==0) {
+    int nOfCones = getNumCones();
+    if (num_cuts_==0) {
+      num_cuts_ = new int[nOfCones]();
+    }
+    if (num_supports_==0) {
+      num_supports_ = new int[nOfCones]();
+    }
+  }
+  if (first_solve_) {
+    initialSolve();
+    first_solve_ = false;
+  }
   // solve linear problem
   bool feasible = false;
   Separate * sep;
@@ -446,13 +460,6 @@ void ColaModel::report_feasibility() const {
 }
 
 void ColaModel::initialSolveOA() {
-  int nOfCones = getNumCones();
-  if (num_cuts_==0) {
-    num_cuts_ = new int[nOfCones]();
-  }
-  if (num_supports_==0) {
-    num_supports_ = new int[nOfCones]();
-  }
   solve(false);
   update_problem_status();
 }
