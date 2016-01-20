@@ -1,31 +1,26 @@
 language: cpp
+os: linux
 
-compiler:
-  - gcc
+matrix:
+  include:
+    - os: osx
+      osx_image: osx10.11
+      env: OSX=10.11
+      compiler: clang
+    - os: osx
+      osx_image: xcode7
+      env: OSX=10.10
+      compiler: clang
+    - os: osx
+      osx_image: beta-xcode6.2
+      env: OSX=10.9
+      compiler: clang
+    - os: linux
 
-addons:
-  apt:
-    packages:
-    - gfortran
-    - blas
-    - lapack
+before_install:
+    - git clone https://gist.github.com/tkralphs/13d4529b4d4e8889f3a6 scripts
+    - bash scripts/get.dependencies.sh fetch
 
-before_script:
-  - svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Blas/stable/1.4 ThirdParty/Blas
-  - svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Lapack/stable/1.5 ThirdParty/Lapack
-  - svn co https://projects.coin-or.org/svn/CoinUtils/stable/2.10/CoinUtils CoinUtils
-  - svn co https://projects.coin-or.org/svn/Osi/stable/0.107/Osi Osi
-  - svn co https://projects.coin-or.org/svn/Clp/stable/1.16/Clp Clp
-  - git clone https://github.com/aykutbulut/OSI-CONIC OsiConic
-  - mkdir build
-  - cd ThirdParty/Blas && ./get.Blas && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ../..
-  - cd ThirdParty/Lapack && ./get.Lapack && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ../..
-  - cd CoinUtils && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
-  - cd Osi && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
-  - cd Clp && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
-  - cd OsiConic && ./configure --prefix=/home/travis/aykut/COLA/build && make && make install && cd ..
+install: bash scripts/get.dependencies.sh build
 
-script: ./configure --prefix=/home/travis/aykut/COLA/build && make install
-
-os:
-  - linux
+script: make test
