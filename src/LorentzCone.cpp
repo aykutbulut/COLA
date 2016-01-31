@@ -6,13 +6,6 @@
 #include <set>
 #include <iomanip>
 
-#ifndef COIN_DBL_MAX
-#define INFINITY DBL_MAX
-#else
-#define INFINITY COIN_DBL_MAX
-#endif
-
-
 LorentzCone::LorentzCone(ConeType type, int size, int const * members)
   : Cone(type) {
   if (type==SCALED) {

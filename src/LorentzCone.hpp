@@ -3,6 +3,8 @@
 
 #include "Cone.hpp"
 
+#include <OsiCone.hpp>
+
 class LorentzCone: virtual public Cone {
   int size_;
   int * members_;

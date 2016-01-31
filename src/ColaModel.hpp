@@ -14,7 +14,7 @@ typedef enum {
   DUAL_INFEASIBLE,
   PRIMAL_OBJECTIVE_LIMIT_REACHED,
   DUAL_OBJECTIVE_LIMIT_REACHED,
-  ITERATION_LIMIT_REACHED,
+  ITERATION_LIMIT_REACHED
 } ProblemStatus;
 
 // TODO(aykut) implement getIterationCount(). It should give number of simplex

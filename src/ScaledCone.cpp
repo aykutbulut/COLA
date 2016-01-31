@@ -8,9 +8,9 @@ extern "C" {
   #include <cblas.h>
   // lapack routines
   void dgesvd_(char *jobu, char *jobvt, int *m, int *n,
-               double *a, int *lda, double *S, double *U,
-               int *ldu, double *vt, int *ldvt, double *work,
-               int *lwork, int *info);
+	       double *a, int *lda, double *S, double *U,
+	       int *ldu, double *vt, int *ldvt, double *work,
+	       int *lwork, int *info);
 }
 
 #define EPS 1e-6
@@ -156,7 +156,7 @@ int ScaledCone::separate(int size, double const * point,
   int n = A_->getNumCols();
   if (size!=n) {
     std::cerr << "Point size should match column size of matrix A."
-  	      << std::endl;
+	      << std::endl;
     throw std::exception();
   }
   int m = A_->getNumRows();
@@ -278,8 +278,8 @@ double ScaledCone::feasibility(int size, CoinPackedVector const & point) const {
 // (A^TA-dd^T) x + (hd-A^Tb)
 // we  may want to store vectors (A^TA-dd^T) and (hd-A^Tb)
 void ScaledCone::simple_separation(double const * point, double const * Ax_b,
-                                   double dx, double Ax_b_Ad,
-                                   double * x_hat) const {
+				   double dx, double Ax_b_Ad,
+				   double * x_hat) const {
   // find x_hat_ on the cone surface
   double alpha = compute_alpha(Ax_b, dx, Ax_b_Ad);
   int n = A_->getNumCols();
@@ -297,8 +297,8 @@ void ScaledCone::simple_separation(double const * point, double const * Ax_b,
 // x^hat = x' + alpha d
 // Note that if max d^T h_i is negative ...
 void ScaledCone::null_separation(double const * point, double const * Ax_b,
-                                   double dx,
-                                   double * x_hat) const {
+				   double dx,
+				   double * x_hat) const {
   if (H_==0) {
     std::cerr << "H is null" << std::endl;
     throw std::exception();
@@ -369,7 +369,7 @@ static void svDecompICL(int m, int n, double * A, double * sv) {
   /* Compute all the rows of sv */
   char jobvt = 'A';
   int lda = m; //Leading dimension of A
-  double s[m]; //Singular values of A
+  double * s = new double[m]; //Singular values of A
   //We are not computing U, so not need to assign memory
   double * u = NULL;
   int ldu = 1;
@@ -382,14 +382,16 @@ static void svDecompICL(int m, int n, double * A, double * sv) {
   //  printf("fails Singular query\n");
   // Query what is the optimal size for the computation of the singular values
   dgesvd_(&jobu, &jobvt, &m, &n, A, &lda, s, u, &ldu,
-          sv, &ldvt, &worksize, &lwork, &info);
+	  sv, &ldvt, &worksize, &lwork, &info);
   // Initilize the working space needed by lapack
   lwork = (int) worksize;
-  double work[lwork];
+  double * work = new double[lwork];
   //   printf("fails Singular computing\n");
   // Here is where the actually computation is happening
   dgesvd_(&jobu, &jobvt, &m, &n, A, &lda, s, u, &ldu,
-          sv, &ldvt, work, &lwork, &info);
+	  sv, &ldvt, work, &lwork, &info);
+  delete[] s;
+  delete[] work;
 }
 
 void ScaledCone::compute_dense_b() {
@@ -457,10 +459,10 @@ void ScaledCone::compute_AA_dd() {
       // entry jj
       AA_dd_[ind[j]*n+ind[j]] += val[j]*val[j];
       for (int k=j+1; k<last; ++k) {
-        // entry jk
-        AA_dd_[ind[j]*n+ind[k]] += val[j]*val[k];
-        // entry kj
-        AA_dd_[ind[k]*n+ind[j]] += val[j]*val[k];
+	// entry jk
+	AA_dd_[ind[j]*n+ind[k]] += val[j]*val[k];
+	// entry kj
+	AA_dd_[ind[k]*n+ind[j]] += val[j]*val[k];
       }
     }
   }
@@ -504,7 +506,7 @@ double ScaledCone::compute_dx(double const * point) const {
 }
 
 double ScaledCone::compute_Ax_b_Ad(double const * point,
-                                   double const * Ax_b) const {
+				   double const * Ax_b) const {
   int m = A_->getNumRows();
   double Ax_b_Ad = std::inner_product(Ax_b, Ax_b+m, Ad_, 0.0);
   return Ax_b_Ad;
@@ -516,7 +518,7 @@ double ScaledCone::compute_Ax_b_Ad(double const * point,
 // b <-- 2[(Ax-b)^T Ad - (d^Tx-h)d^Td]
 // c <-- ||Ax-b||^2 - (d^Tx-h)^2
 double ScaledCone::compute_alpha(double const * Ax_b, double dx,
-                                 double Ax_b_Ad) const {
+				 double Ax_b_Ad) const {
   double quad_coef = AdAd_ - dd_*dd_;
   double lin_coef = 2.0*(Ax_b_Ad - (dx-h_)*dd_);
   int m = A_->getNumRows();
@@ -546,9 +548,9 @@ double ScaledCone::compute_null_alpha(double const * Ax_b, double dx) const {
 // (A^TA-dd^T) x + (hd-A^Tb)
 // we  may want to store vectors (A^TA-dd^T) and (hd-A^Tb)
 void ScaledCone::compute_gradient(double const * x_hat,
-                                  int & size,
-                                  int *& ind_grad_x,
-                                  double *& val_grad_x) const {
+				  int & size,
+				  int *& ind_grad_x,
+				  double *& val_grad_x) const {
   int n = A_->getNumCols();
   // (A^TA-dd^T)x
   double * AA_dd_x = new double[n];
@@ -572,8 +574,8 @@ void ScaledCone::compute_gradient(double const * x_hat,
 }
 
 double ScaledCone::compute_rhs(double const * point, int size,
-                               int const * ind,
-                               double const * val) const {
+			       int const * ind,
+			       double const * val) const {
   double rhs = 0.0;
   for (int i=0; i<size; ++i) {
     rhs += point[ind[i]]*val[i];
@@ -595,7 +597,7 @@ std::vector<Cone*> ScaledCone::reduce() const {
 }
 
 void ScaledCone::canonical_form(CoinPackedMatrix *& mat, double & rhs,
-                                LorentzCone *& c) const {
+				LorentzCone *& c) const {
   std::cerr << "Not implemented yet!" << std::endl;
   throw std::exception();
 }

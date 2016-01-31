@@ -14,7 +14,7 @@ class ColaModel;
 typedef enum {
   LORENTZ=0, // lorentz cone, x_1 >= |x_2:n|
   RLORENTZ,  // rotated lorentz cone, 2x1x2>=|x_3:n|, x1>=0, x2>=0
-  SCALED,    // scaled cone, dx-h >= |Ax-b|
+  SCALED    // scaled cone, dx-h >= |Ax-b|
 } ConeType;
 
 // Abstract base class for a conic constraint
@@ -65,4 +65,3 @@ public:
 };
 
 #endif
-

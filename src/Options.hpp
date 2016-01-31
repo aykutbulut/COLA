@@ -5,16 +5,17 @@
 #include <string>
 typedef enum {
   LOG_LEVEL=0,
-  OSI_LOG_LEVEL,
+  OSI_LOG_LEVEL
   //  end_of_int_options
 } IntOptions;
 
 typedef enum {
-  TOL = 0,
+  TOL = 0
   //  end_of_dbl_options
 } DblOptions;
 
 typedef enum {
+  dummy = 0
   //  end_of_str_options
 } StrOptions;
 

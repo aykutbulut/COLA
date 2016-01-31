@@ -32,8 +32,8 @@ extern "C"
 {
   /** LAPACK Fortran subroutine DPOSV. */
   void F77_FUNC(dposv, DPOSV)(char * uplo, ipfint * n, ipfint * nrhs,
-                              double * A, ipfint * lda, double * B,
-                              ipfint * ldb, ipfint * info);
+			      double * A, ipfint * lda, double * B,
+			      ipfint * ldb, ipfint * info);
 }
 
 ColaModel::ColaModel() : OsiClpSolverInterface() {
@@ -295,8 +295,8 @@ ProblemStatus ColaModel::solve(bool resolve) {
   if (soco_status_==DUAL_INFEASIBLE) {
     if (options_->get_int_option(LOG_LEVEL)>0) {
       std::cout << "Cola: Problem without conic constraints is unbounded. Adding"
-        " supporting hyperplanes to resolve..."
-                << std::endl;
+	" supporting hyperplanes to resolve..."
+		<< std::endl;
     }
     while (soco_status_==DUAL_INFEASIBLE) {
       // check if primal is infeasible, then the problem is infeasible
@@ -325,7 +325,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
       // PRINT UNBDDNESS DIRECTION
       // std::cout << "Unboundedness direction is " << std::endl  << "[";
       // for (int i=0; i<getNumCols(); ++i) {
-      // 	std::cout << std::setw(10) << vec[i] << "; ";
+      //	std::cout << std::setw(10) << vec[i] << "; ";
       // }
       // std::cout << "]" << std::endl;
       // END OF DIRECTION PRINT
@@ -357,7 +357,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
       if (!rays.empty()) {
 	for(int i=0; i<rays.size(); ++i)
 	  delete[] rays[i];
-       	rays.clear();
+	rays.clear();
       }
       delete sep;
       num_lp_solved_++;
@@ -834,7 +834,7 @@ void ColaModel::reduce_cone(int size, const int * members,
     reduced_cones_i.push_back(c);
   }
   // reduce cone of new variables
-  int new_cone[k+1];
+  int * new_cone = new int[k+1];
   new_cone[0] = members[0];
   for (int i=1; i<k+1; ++i) {
     new_cone[i] = num_var+i-1;
@@ -842,6 +842,7 @@ void ColaModel::reduce_cone(int size, const int * members,
   num_var = num_var+k;
   // recursive call for reducing the new cone.
   reduce_cone(k+1, new_cone, reduced_cones_i, num_var);
+  delete[] new_cone;
 }
 
 int ColaModel::num_lp_solved() const {
@@ -1157,9 +1158,9 @@ ProblemStatus ColaModel::solve_numeric() {
       lhs_real = lhs;
     }
     std::cout << std::setw(5) << std::left << i
-              << std::setw(20) << std::left << lhs
-              << std::setw(20) << std::left << lhs_real
-              << std::endl;
+	      << std::setw(20) << std::left << lhs
+	      << std::setw(20) << std::left << lhs_real
+	      << std::endl;
     delete[] par_sol;
   }
   return soco_status_;
@@ -1299,4 +1300,3 @@ bool ColaModel::isIterationLimitReached() const {
   else
     return false;
 }
-
