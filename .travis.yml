@@ -19,7 +19,7 @@ matrix:
         apt:
           packages:
           - gfortran
-          - libgsl-dev
+          - libblas-dev
   allow_failures:
     - os: osx
 
