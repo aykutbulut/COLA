@@ -8,6 +8,6 @@ ThirdParty/Mumps  https://projects.coin-or.org/svn/BuildTools/ThirdParty/Mumps/s
 CoinUtils         https://projects.coin-or.org/svn/CoinUtils/trunk/CoinUtils
 Osi               https://projects.coin-or.org/svn/Osi/trunk/Osi
 Clp               https://projects.coin-or.org/svn/Clp/trunk/Clp
-OsiConic          https://github.com/aykutbulut/OSI-CONIC.git
+OsiConic          https://github.com/aykutbulut/OSI-CONIC
 Ipopt             https://projects.coin-or.org/svn/Ipopt/releases/3.12.3/Ipopt
 OsiIpopt          https://github.com/aykutbulut/OsiIpopt OsiIpopt
