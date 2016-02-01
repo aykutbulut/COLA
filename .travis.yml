@@ -20,7 +20,6 @@ matrix:
 	  packages:
 	  - gfortran
 	  - libblas-dev
-	  - liblapack-dev
   allow_failures:
     - os: osx
 
