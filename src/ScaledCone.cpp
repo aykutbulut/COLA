@@ -4,10 +4,10 @@
 #include <numeric>
 #include <cmath>
 
-extern "C" {
 #ifdef __OSX__
 #include <Accelerate/Accelerate.h>
 #else
+extern "C" {
 #include <cblas.h>
 #endif
   // lapack routines
