@@ -31,7 +31,7 @@ before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" != "10.9" ]]; then brew install libblas-dev; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" != "10.9" ]]; then brew install liblapack-dev; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" != "10.9" ]]; then brew install libatlas-dev; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; export ADD_CXXFLAGS=-D__OSX__; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export ADD_CXXFLAGS=-D__OSX__; fi
   - git clone https://gist.github.com/tkralphs/13d4529b4d4e8889f3a6 scripts
   - bash scripts/get.dependencies.sh fetch > /dev/null
 
