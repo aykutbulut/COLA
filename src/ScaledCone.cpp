@@ -5,7 +5,11 @@
 #include <cmath>
 
 extern "C" {
-  #include <cblas.h>
+#ifdef __OSX__
+#include <Accelerate/Accelerate.h>
+#else
+#include <cblas.h>
+#endif
   // lapack routines
   void dgesvd_(char *jobu, char *jobvt, int *m, int *n,
 	       double *a, int *lda, double *S, double *U,
