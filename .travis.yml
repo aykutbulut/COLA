@@ -16,12 +16,12 @@ matrix:
       compiler: clang
     - os: linux
       addons:
-	apt:
-	  packages:
-	  - gfortran
-	  - libblas-dev
-	  - liblapack-dev
-	  - libatlas-dev
+        apt:
+          packages:
+          - gfortran
+          - libblas-dev
+          - liblapack-dev
+          - libatlas-dev
   allow_failures:
     - os: osx
 
@@ -36,3 +36,4 @@ before_script:
   - bash scripts/get.dependencies.sh fetch > /dev/null
 
 script: bash scripts/get.dependencies.sh build --quiet
+
