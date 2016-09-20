@@ -31,7 +31,7 @@ typedef enum {
 // problem by adding approximating hyperplanes.
 
 class ColaModel: virtual public OsiConicSolverInterface,
-		 public OsiClpSolverInterface {
+                 public OsiClpSolverInterface {
   // data members
   std::vector<Cone*> cones_;
   Options * options_;
@@ -53,7 +53,7 @@ class ColaModel: virtual public OsiConicSolverInterface,
   // them in reduced_cone
   // num_var will store the new number of variables after reduction
   void reduce_cone(int size, const int * members,
-		   std::vector<Cone*> & reduced_cone, int & num_var);
+                   std::vector<Cone*> & reduced_cone, int & num_var);
 protected:
   // get cut and support statistics
   const int * num_cuts() const;
@@ -72,6 +72,8 @@ protected:
   void lapack_solve(double ** A, double * b, double * x, int dim);
   // approximate conic constraitns around a given solution, inserts
   void approximate(double const * sol);
+  virtual void initialSolveOA();
+  virtual void initialSolveIPM();
 public:
   // default constructor
   ColaModel();
@@ -101,21 +103,21 @@ public:
   // VIRTUAL FUNCTIONS
   // get conic constraints
   virtual void getConicConstraint(int index, OsiLorentzConeType & type,
-				  int & numMembers,
-				  int *& members) const;
+                                  int & numMembers,
+                                  int *& members) const;
   // add conic constraints
   // add conic constraint in lorentz cone form
   virtual void addConicConstraint(OsiLorentzConeType type,
-				  int numMembers,
-				  int const * members);
+                                  int numMembers,
+                                  int const * members);
   // add conic constraint in |Ax-b| <= dx-h form
   virtual void addConicConstraint(CoinPackedMatrix const * A,
-				  CoinPackedVector const * b,
-				  CoinPackedVector const * d, double h);
+                                  CoinPackedVector const * b,
+                                  CoinPackedVector const * d, double h);
   virtual void removeConicConstraint(int index);
   virtual void modifyConicConstraint(int index, OsiLorentzConeType type,
-				     int numMembers,
-				     int const * members);
+                                     int numMembers,
+                                     int const * members);
   //ProblemStatus solve();
   virtual int getNumCones() const;
   virtual int getConeSize(int i) const;
@@ -124,7 +126,6 @@ public:
   virtual void getConeType(OsiConeType * type) const;
   virtual void getConeType(OsiLorentzConeType * type) const;
   virtual int readMps(const char * filename, const char * extension="mps");
-  virtual void initialSolveOA();
   virtual void initialSolve();
   virtual void resolve();
   // mark hot start, does nothing for now
@@ -142,8 +143,8 @@ public:
   void clean_redundant_constraints();
   // use conic solver interface's writeMps method
   virtual void writeMps(const char * filename,
-			const char * extension = "mps",
-			double objSense=0.0) const;
+                        const char * extension = "mps",
+                        double objSense=0.0) const;
   // solution status querry functions
   virtual bool isAbandoned() const;
   virtual bool isProvenOptimal() const;
