@@ -7,6 +7,9 @@ addons:
   apt:
     packages:
     - gfortran
+    - libblas-dev
+    - liblapack-dev
+    - libatlas-dev
 
 before_script:
   - svn co https://projects.coin-or.org/svn/BuildTools/ThirdParty/Blas/stable/1.4 ThirdParty/Blas
