@@ -12,7 +12,7 @@ class ColaModel;
 typedef enum {
   LORENTZ=0, // lorentz cone, x_1 >= |x_2:n|
   RLORENTZ,  // rotated lorentz cone, 2x1x2>=|x_3:n|, x1>=0, x2>=0
-  SCALED,    // scaled cone, dx-h >= |Ax-b|
+  SCALED    // scaled cone, dx-h >= |Ax-b|
 } ConeType;
 
 // Abstract base class for a conic constraint
@@ -34,10 +34,10 @@ public:
   virtual ~Cone();
   // returns 0 if point is epsilon feasible, nonzero otherwise
   //virtual int separate(int size, double const * point, int * & coef_ind,
-  //		       double * & coef_val, double & rhs) const;
+  //                   double * & coef_val, double & rhs) const;
   virtual int separate(int size, double const * point,
-		       CoinPackedVector * & cut,
-		       double & rhs) const = 0;
+                       CoinPackedVector * & cut,
+                       double & rhs) const = 0;
   // size of cone, for Lorentz cones number of variables in the cone,
   // for Scaled cones number of rows of A plus 1
   virtual int size() const = 0;
@@ -57,4 +57,3 @@ public:
 };
 
 #endif
-

@@ -86,7 +86,7 @@ ColaModel::ColaModel(ColaModel const & other): OsiClpSolverInterface(other) {
   // copy number of supports
   num_supports_ = new int[numCones]();
   std::copy(other.num_supports(), other.num_supports() + numCones,
-	    num_supports_);
+            num_supports_);
   total_num_supports_ = other.total_num_supports();
   imp_solution_ = 0;
 }
@@ -119,7 +119,7 @@ ColaModel & ColaModel::operator=(ColaModel const & rhs) {
     delete num_supports_;
   num_supports_ = new int[numCones]();
   std::copy(rhs.num_supports(), rhs.num_supports() + numCones,
-	    num_supports_);
+            num_supports_);
   total_num_supports_ = rhs.total_num_supports();
   imp_solution_ = 0;
   return *this;
@@ -157,8 +157,8 @@ ColaModel::~ColaModel() {
 
 
 void ColaModel::addConicConstraint(OsiLorentzConeType type,
-				  int numMembers,
-				  int const * members) {
+                                  int numMembers,
+                                  int const * members) {
   ConeType t;
   if (type==OSI_QUAD)
     t = LORENTZ;
@@ -184,8 +184,8 @@ void ColaModel::addConicConstraint(OsiLorentzConeType type,
 
 
 void ColaModel::addConicConstraint(CoinPackedMatrix const * A,
-				   CoinPackedVector const * b,
-				   CoinPackedVector const * d, double h) {
+                                   CoinPackedVector const * b,
+                                   CoinPackedVector const * d, double h) {
   Cone * c = new ScaledCone(A, b, d, h);
   cones_.push_back(c);
 }
@@ -220,14 +220,14 @@ void ColaModel::print_stats() const {
   if (total_num_supports_!=0) {
     for (int i=0; i<num_cones; ++i) {
       std::cout << "     Supports for cone " << std::setw(5) << i
-		<< std::setw(6) << num_supports_[i] << std::endl;
+                << std::setw(6) << num_supports_[i] << std::endl;
     }
   }
   std::cout << "Total Seperating hyperplanes: " << total_num_cuts_ << std::endl;
   if (total_num_cuts_) {
     for (int i=0; i<num_cones; ++i) {
       std::cout << "     Seperating hyperplane for cone " << std::setw(5) << i
-		<< std::setw(6) << num_cuts_[i] << std::endl;
+                << std::setw(6) << num_cuts_[i] << std::endl;
     }
   }
   std::cout << "Number of LPs solved: " << num_lp_solved_ << std::endl;
@@ -260,7 +260,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
   // ===== End Of adding nonnegativity of leading variables
   //writeMps("initial", "mps");
   num_lp_solved_++;
-  if (resolve==false) {
+  if (total_num_cuts_==0) {
     // if this function is called from OsiConicSolverInterface::initialSolve then
     OsiClpSolverInterface::initialSolve();
   }
@@ -285,10 +285,10 @@ ProblemStatus ColaModel::solve(bool resolve) {
     while (soco_status_==DUAL_INFEASIBLE) {
       // check if primal is infeasible, then the problem is infeasible
       if (isProvenPrimalInfeasible()) {
-	// Both LP primal and dual is infeasible, conic problem is infeasible
-	std::cout << "Cola: Conic problem is infeasible."
-		  << std::endl
-		  << "Cola: Terminating...";
+        // Both LP primal and dual is infeasible, conic problem is infeasible
+        std::cout << "Cola: Conic problem is infeasible."
+                  << std::endl
+                  << "Cola: Terminating...";
       }
 
       // get one ray
@@ -296,20 +296,20 @@ ProblemStatus ColaModel::solve(bool resolve) {
       std::vector<double*> rays = getPrimalRays(1);
       const double * vec = 0;
       if (!rays.empty() and rays[0]!=0) {
-	vec = rays[0];
+        vec = rays[0];
       }
       else {
-	std::cout << "Cola: Warning! "
-		  << "LP is unbounded but solver did not return a "
-	  "direction of unboundedness." << std::endl
-		  << "Cola: Trying to generate supports using objective "
-	  "function coefficients..." << std::endl;
-	vec = getObjCoefficients();
+        std::cout << "Cola: Warning! "
+                  << "LP is unbounded but solver did not return a "
+          "direction of unboundedness." << std::endl
+                  << "Cola: Trying to generate supports using objective "
+          "function coefficients..." << std::endl;
+        vec = getObjCoefficients();
       }
       // PRINT UNBDDNESS DIRECTION
       // std::cout << "Unboundedness direction is " << std::endl  << "[";
       // for (int i=0; i<getNumCols(); ++i) {
-      // 	std::cout << std::setw(10) << vec[i] << "; ";
+      //        std::cout << std::setw(10) << vec[i] << "; ";
       // }
       // std::cout << "]" << std::endl;
       // END OF DIRECTION PRINT
@@ -317,31 +317,31 @@ ProblemStatus ColaModel::solve(bool resolve) {
       // returns true if direction is feasible for all cones.
       feasible = sep->is_feasible();
       if (feasible) {
-	// primal ray is feasible for all cone constraints,
-	// problem is unbounded
-	delete sep;
-	soco_status_ = DUAL_INFEASIBLE;
-	return DUAL_INFEASIBLE;
+        // primal ray is feasible for all cone constraints,
+        // problem is unbounded
+        delete sep;
+        soco_status_ = DUAL_INFEASIBLE;
+        return DUAL_INFEASIBLE;
       }
       else {
-	// Add all the cuts generated
-	std::vector<CoinPackedVector*> cut = sep->cuts();
-	std::vector<double> rhs = sep->rhs();
-	std::vector<int> gen_cone = sep->generating_cone();
-	int num_cuts = cut.size();
-	for (int i=0; i<num_cuts; ++i) {
-	  addRow(*cut[i], -getInfinity(), rhs[i]);
-	  // print cut
-	  // end of cut print
-	  total_num_supports_++;
-	  num_supports_[gen_cone[i]]++;
-	}
+        // Add all the cuts generated
+        std::vector<CoinPackedVector*> cut = sep->cuts();
+        std::vector<double> rhs = sep->rhs();
+        std::vector<int> gen_cone = sep->generating_cone();
+        int num_cuts = cut.size();
+        for (int i=0; i<num_cuts; ++i) {
+          addRow(*cut[i], -getInfinity(), rhs[i]);
+          // print cut
+          // end of cut print
+          total_num_supports_++;
+          num_supports_[gen_cone[i]]++;
+        }
       }
       // todo(aykut) delete all rays not just first one.
       if (!rays.empty()) {
-	for(int i=0; i<rays.size(); ++i)
-	  delete[] rays[i];
-       	rays.clear();
+        for(int i=0; i<rays.size(); ++i)
+          delete[] rays[i];
+        rays.clear();
       }
       delete sep;
       num_lp_solved_++;
@@ -354,7 +354,7 @@ ProblemStatus ColaModel::solve(bool resolve) {
     // it means it is not optimal after resolving unbounded directions
     std::cout << "Cola: Problem status is not optimal after adding "
       "supporting hyperplanes."
-	      << std::endl;
+              << std::endl;
     std::cout << "Cola: Terminating..." << std::endl;
     return soco_status_;
   }
@@ -425,20 +425,20 @@ void ColaModel::report_feasibility() const {
   std::cout << std::setw(5) << std::left << "Cone";
   // todo(aykut) this is not true all the time, what if cone is rotated.
   std::cout << std::setw(20) << std::left << "x1^2-sum x_i^2"
-	    << std::setw(20) << std::left << "x1-||x_{2:n}||"
-	    << std::endl;
+            << std::setw(20) << std::left << "x1-||x_{2:n}||"
+            << std::endl;
   for (int i=0; i<cones_.size(); ++i) {
     if (cones_[i]->type()==LORENTZ) {
       std::cout << std::setw(5) << std::left << i
-		<< std::setw(20) << std::left << "-"
-		<< std::setw(20) << std::left << cones_[i]->feasibility(getColSolution())
-		<< std::endl;
+                << std::setw(20) << std::left << "-"
+                << std::setw(20) << std::left << cones_[i]->feasibility(getColSolution())
+                << std::endl;
     }
     else if (cones_[i]->type()==RLORENTZ) {
       std::cout << std::setw(5) << std::left << i
-		<< std::setw(20) << std::left << cones_[i]->feasibility(getColSolution())
-		<< std::setw(20) << std::left << "-"
-		<< std::endl;
+                << std::setw(20) << std::left << cones_[i]->feasibility(getColSolution())
+                << std::setw(20) << std::left << "-"
+                << std::endl;
     }
   }
 }
@@ -583,8 +583,8 @@ void ColaModel::getConeType(OsiLorentzConeType * type) const {
 }
 
 void ColaModel::getConicConstraint(int index, OsiLorentzConeType & type,
-				   int & numMembers,
-				   int *& members) const {
+                                   int & numMembers,
+                                   int *& members) const {
   ConeType t = cones_[index]->type();
   if (t==SCALED) {
     std::cerr << "this function is for Lorentz cones!" << std::endl;
@@ -606,8 +606,8 @@ void ColaModel::removeConicConstraint(int index) {
 }
 
 void ColaModel::modifyConicConstraint(int index, OsiLorentzConeType type,
-				      int numMembers,
-				      int const * members) {
+                                      int numMembers,
+                                      int const * members) {
   // free cone data first
   delete cones_[index];
   // insert new cone
@@ -629,7 +629,7 @@ ProblemStatus ColaModel::solve_reducing_cones(bool resolve) {
   for (it=cones_.begin(); it!=cones_.end(); it++) {
     if ((*it)->type()==SCALED) {
       std::cerr << "Cola: This method is only for Lorentz cones."
-		<< std::endl;
+                << std::endl;
       std::cerr << "Cola: Terminating..." << std::endl;
       soco_status_ = ABANDONED;
       return ABANDONED;
@@ -639,7 +639,7 @@ ProblemStatus ColaModel::solve_reducing_cones(bool resolve) {
   for (int i=0; i<num_cones; ++i) {
     if (cones_[i]->type()==SCALED or cones_[i]->type()==RLORENTZ) {
       std::cerr << "Cola: This method is only for canonical cones."
-		<< std::endl;
+                << std::endl;
       std::cerr << "Cola: Terminating..." << std::endl;
       soco_status_ = ABANDONED;
       return ABANDONED;
@@ -666,7 +666,7 @@ ProblemStatus ColaModel::solve_reducing_cones(bool resolve) {
     }
     // copy all from reduced_cones_i vector to reduced_cones
     //    std::copy(reduced_cones_i, reduced_cones_i+reduced_cones_i.size(),
-    //	      reduced_cones+reduced_cones.size());
+    //        reduced_cones+reduced_cones.size());
     // reset reduced_cc_i
     reduced_cones_i.clear();;
   }
@@ -743,7 +743,7 @@ ProblemStatus ColaModel::solve_with_bn(bool resolve, int v) {
       reduced_cones.push_back(reduced_cones_i[i]);
     }
     //    std::copy(reduced_cones_i, reduced_cones_i+reduced_cones_i.size(),
-    //	      reduced_cones+reduced_cones.size());
+    //        reduced_cones+reduced_cones.size());
     // reset reduced_cc_i
     reduced_cones_i.clear();
   }
@@ -793,7 +793,7 @@ ProblemStatus ColaModel::solve_with_bn(bool resolve, int v) {
 
 // this function assumes cone is in canonical form.
 void ColaModel::reduce_cone(int size, const int * members,
-			    std::vector<Cone*> & reduced_cones_i, int & num_var) {
+                            std::vector<Cone*> & reduced_cones_i, int & num_var) {
   // k is
   if (size<=3) {
     // add current cone and return
@@ -825,7 +825,7 @@ void ColaModel::reduce_cone(int size, const int * members,
     reduced_cones_i.push_back(c);
   }
   // reduce cone of new variables
-  int new_cone[k+1];
+  int * new_cone = new int[k+1];
   new_cone[0] = members[0];
   for (int i=1; i<k+1; ++i) {
     new_cone[i] = num_var+i-1;
@@ -833,6 +833,7 @@ void ColaModel::reduce_cone(int size, const int * members,
   num_var = num_var+k;
   // recursive call for reducing the new cone.
   reduce_cone(k+1, new_cone, reduced_cones_i, num_var);
+  delete[] new_cone;
 }
 
 int ColaModel::num_lp_solved() const {
@@ -876,12 +877,12 @@ void ColaModel::clean_redundant_constraints() {
   delete[] row_indices;
   if (num_to_delete)
     std::cout << num_to_delete << " redundant constraints removed."
-	      << std::endl;
+              << std::endl;
 }
 
 void ColaModel::writeMps(const char * filename,
-			 const char * extension,
-			 double objSense) const {
+                         const char * extension,
+                         double objSense) const {
   std::cerr << "Writing mps files are not implemented yet." << std::endl;
   OsiClpSolverInterface::writeMps(filename, extension, objSense);
   //throw std::exception();
@@ -936,9 +937,9 @@ ProblemStatus ColaModel::solve_numeric() {
     int Aa_i_size = 0;
     for (int i=0; i<num_binding; ++i) {
       if (Aa_i[i]!=0.0) {
-	Aa_i_cols[Aa_i_size] = i;
-	Aa_i_vals[Aa_i_size] = Aa_i[i];
-	Aa_i_size++;
+        Aa_i_cols[Aa_i_size] = i;
+        Aa_i_vals[Aa_i_size] = Aa_i[i];
+        Aa_i_size++;
       }
     }
     AAt->appendCol(CoinPackedVector(Aa_i_size, Aa_i_cols, Aa_i_vals));
@@ -1086,7 +1087,7 @@ ProblemStatus ColaModel::solve_numeric() {
     // number of cuts generated
     // std::cout << "ColaModel: " << sep->cuts()->size() << " cuts generated." << std::endl;
     // add all the cuts generated
-	// Add all the cuts generated
+        // Add all the cuts generated
     std::vector<CoinPackedVector*> cut = sep->cuts();
     std::vector<double> rhs = sep->rhs();
     std::vector<int> gen_cone = sep->generating_cone();
@@ -1124,8 +1125,8 @@ ProblemStatus ColaModel::solve_numeric() {
   std::cout << std::setw(5) << std::left << "Cone";
   // todo(aykut) this is not true all the time, what if cone is rotated.
   std::cout << std::setw(20) << std::left << "x1^2-sum x_i^2"
-	    << std::setw(20) << std::left << "x1-||x_{2:n}||"
-	    << std::endl;
+            << std::setw(20) << std::left << "x1-||x_{2:n}||"
+            << std::endl;
   const double * full_sol = imp_solution_;
   //double * par_sol;
   for (int i=0; i<num_cones; ++i) {
@@ -1138,13 +1139,13 @@ ProblemStatus ColaModel::solve_numeric() {
     }
     if (con->type()==LORENTZ) {
       lhs = par_sol[0]*par_sol[0]
-	- std::inner_product(par_sol+1, par_sol+cone_size, par_sol+1, 0.0);
+        - std::inner_product(par_sol+1, par_sol+cone_size, par_sol+1, 0.0);
       lhs_real = par_sol[0]
-	-sqrt(std::inner_product(par_sol+1, par_sol+cone_size, par_sol+1, 0.0));
+        -sqrt(std::inner_product(par_sol+1, par_sol+cone_size, par_sol+1, 0.0));
     }
     else if (con->type()==RLORENTZ) {
       lhs = 2.0*par_sol[0]*par_sol[1]
-	- std::inner_product(par_sol+2, par_sol+cone_size, par_sol+2, 0.0);
+        - std::inner_product(par_sol+2, par_sol+cone_size, par_sol+2, 0.0);
       lhs_real = lhs;
     }
     std::cout << std::setw(5) << std::left << i
