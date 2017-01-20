@@ -4,18 +4,18 @@
 #include <numeric>
 #include <cmath>
 
-#ifdef __OSX__
-#include <Accelerate/Accelerate.h>
-#else
-extern "C" {
-#include <cblas.h>
-  // lapack routines
-  void dgesvd_(char *jobu, char *jobvt, int *m, int *n,
-	       double *a, int *lda, double *S, double *U,
-	       int *ldu, double *vt, int *ldvt, double *work,
-	       int *lwork, int *info);
-}
-#endif
+// #ifdef __OSX__
+// #include <Accelerate/Accelerate.h>
+// #else
+// extern "C" {
+// #include <cblas.h>
+//   // lapack routines
+//   void dgesvd_(char *jobu, char *jobvt, int *m, int *n,
+// 	       double *a, int *lda, double *S, double *U,
+// 	       int *ldu, double *vt, int *ldvt, double *work,
+// 	       int *lwork, int *info);
+// }
+// #endif
 
 #define EPS 1e-6
 
@@ -317,85 +317,89 @@ void ScaledCone::null_separation(double const * point, double const * Ax_b,
 
 // compute null space basis of A
 void ScaledCone::compute_H() {
-  // for this we need a dense copy of A, unfortunately :(
-  // we can free it once we computed the null space
-  int n = A_->getNumCols();
-  int m = A_->getNumRows();
-  double * temp_A = new double[n*m]();
-  int const * ind = A_->getIndices();
-  double const * val = A_->getElements();
-  // A_ is row major, we want tempA in col major
-  for (int i=0; i<m; ++i) {
-    int first = A_->getVectorFirst(i);
-    int last = A_->getVectorLast(i);
-    for (int j=first; j<last; ++j) {
-      temp_A[i+ind[j]*m] = val[j];
-    }
-  }
-  // Right hand side singular vectors of A
-  double * sv = new double [n*n];
-  svDecompICL(m, n, temp_A, sv);
-  H_ = new double[(n-m)*n]();
-  // Take the last n-m columns of V, lapack returns V^T
-  for(int i=0; i<(n-m); ++i) {
-    //cblas_dcopy(num_cols, (VT + num_rows_ + i), num_cols, (matH_+i*num_cols), 1);
-    cblas_dcopy(n, (sv+m+i), n, (H_+i*n), 1);
-  }
-  // now H is col ordered and columns of it are basis for the null space.
-  delete [] temp_A;
-  delete [] sv;
-  // compute v_, v is the smallest angle column of H, ie, max d^T h_i
-  v_ = new double[n]();
-  // H^T d
-  double * Hd = new double [n-m]();
-  cblas_dgemv(CblasColMajor, CblasTrans, n, n-m, 1.0, H_, n, dense_d_, 1, 0.0, Hd, 1);
-  // determine max v_i
-  double max_val = -1e-6;
-  int max_ind = -1;
-  for (int i=0; i<n-m; ++i) {
-    if (Hd[i]>max_val) {
-      max_val = Hd[i];
-      max_ind = i;
-    }
-  }
-  if (max_ind==-1) {
-    std::cerr << "All innerproducts are negative!" << std::endl;
-    throw std::exception();
-  }
-  // assume H is col ordered
-  std::copy(H_+max_ind*n, H_+max_ind*n+n, v_);
-  delete[] Hd;
+  std::cerr << "Not implemented yet." << std::endl;
+  throw std::exception();
+  // // for this we need a dense copy of A, unfortunately :(
+  // // we can free it once we computed the null space
+  // int n = A_->getNumCols();
+  // int m = A_->getNumRows();
+  // double * temp_A = new double[n*m]();
+  // int const * ind = A_->getIndices();
+  // double const * val = A_->getElements();
+  // // A_ is row major, we want tempA in col major
+  // for (int i=0; i<m; ++i) {
+  //   int first = A_->getVectorFirst(i);
+  //   int last = A_->getVectorLast(i);
+  //   for (int j=first; j<last; ++j) {
+  //     temp_A[i+ind[j]*m] = val[j];
+  //   }
+  // }
+  // // Right hand side singular vectors of A
+  // double * sv = new double [n*n];
+  // svDecompICL(m, n, temp_A, sv);
+  // H_ = new double[(n-m)*n]();
+  // // Take the last n-m columns of V, lapack returns V^T
+  // for(int i=0; i<(n-m); ++i) {
+  //   //cblas_dcopy(num_cols, (VT + num_rows_ + i), num_cols, (matH_+i*num_cols), 1);
+  //   cblas_dcopy(n, (sv+m+i), n, (H_+i*n), 1);
+  // }
+  // // now H is col ordered and columns of it are basis for the null space.
+  // delete [] temp_A;
+  // delete [] sv;
+  // // compute v_, v is the smallest angle column of H, ie, max d^T h_i
+  // v_ = new double[n]();
+  // // H^T d
+  // double * Hd = new double [n-m]();
+  // cblas_dgemv(CblasColMajor, CblasTrans, n, n-m, 1.0, H_, n, dense_d_, 1, 0.0, Hd, 1);
+  // // determine max v_i
+  // double max_val = -1e-6;
+  // int max_ind = -1;
+  // for (int i=0; i<n-m; ++i) {
+  //   if (Hd[i]>max_val) {
+  //     max_val = Hd[i];
+  //     max_ind = i;
+  //   }
+  // }
+  // if (max_ind==-1) {
+  //   std::cerr << "All innerproducts are negative!" << std::endl;
+  //   throw std::exception();
+  // }
+  // // assume H is col ordered
+  // std::copy(H_+max_ind*n, H_+max_ind*n+n, v_);
+  // delete[] Hd;
 }
 
 static void svDecompICL(int m, int n, double * A, double * sv) {
-  /* Do not compute U */
-  char jobu = 'N';
-  /* Compute all the rows of sv */
-  char jobvt = 'A';
-  int lda = m; //Leading dimension of A
-  double * s = new double[m]; //Singular values of A
-  //We are not computing U, so not need to assign memory
-  double * u = NULL;
-  int ldu = 1;
-  //Right hand side singular vectors of A in sv
-  int ldvt = n;
-  // Working space size needed by lapack
-  double worksize = 0.0;
-  int lwork = -1; // Tells lapack to query only what is the space needed
-  int info = 0;
-  //  printf("fails Singular query\n");
-  // Query what is the optimal size for the computation of the singular values
-  dgesvd_(&jobu, &jobvt, &m, &n, A, &lda, s, u, &ldu,
-	  sv, &ldvt, &worksize, &lwork, &info);
-  // Initilize the working space needed by lapack
-  lwork = (int) worksize;
-  double * work = new double[lwork];
-  //   printf("fails Singular computing\n");
-  // Here is where the actually computation is happening
-  dgesvd_(&jobu, &jobvt, &m, &n, A, &lda, s, u, &ldu,
-	  sv, &ldvt, work, &lwork, &info);
-  delete[] s;
-  delete[] work;
+  std::cerr << "Not implemented yet." << std::endl;
+  throw std::exception();
+  // /* Do not compute U */
+  // char jobu = 'N';
+  // /* Compute all the rows of sv */
+  // char jobvt = 'A';
+  // int lda = m; //Leading dimension of A
+  // double * s = new double[m]; //Singular values of A
+  // //We are not computing U, so not need to assign memory
+  // double * u = NULL;
+  // int ldu = 1;
+  // //Right hand side singular vectors of A in sv
+  // int ldvt = n;
+  // // Working space size needed by lapack
+  // double worksize = 0.0;
+  // int lwork = -1; // Tells lapack to query only what is the space needed
+  // int info = 0;
+  // //  printf("fails Singular query\n");
+  // // Query what is the optimal size for the computation of the singular values
+  // dgesvd_(&jobu, &jobvt, &m, &n, A, &lda, s, u, &ldu,
+  //         sv, &ldvt, &worksize, &lwork, &info);
+  // // Initilize the working space needed by lapack
+  // lwork = (int) worksize;
+  // double * work = new double[lwork];
+  // //   printf("fails Singular computing\n");
+  // // Here is where the actually computation is happening
+  // dgesvd_(&jobu, &jobvt, &m, &n, A, &lda, s, u, &ldu,
+  //         sv, &ldvt, work, &lwork, &info);
+  // delete[] s;
+  // delete[] work;
 }
 
 void ScaledCone::compute_dense_b() {
@@ -555,26 +559,28 @@ void ScaledCone::compute_gradient(double const * x_hat,
 				  int & size,
 				  int *& ind_grad_x,
 				  double *& val_grad_x) const {
-  int n = A_->getNumCols();
-  // (A^TA-dd^T)x
-  double * AA_dd_x = new double[n];
-  double * grad = new double[n];
-  ind_grad_x = new int[n];
-  val_grad_x = new double[n];
-  cblas_dgemv(CblasColMajor, CblasTrans, n, n, 1.0, AA_dd_, n, x_hat, 1, 0.0, AA_dd_x, 1);
-  for (int i=0; i<n; ++i ) {
-    grad[i] = AA_dd_x[i] + h_*dense_d_[i]-Ab_[i];
-  }
-  size = 0;
-  for (int i=0; i<n; ++i) {
-    if (grad[i]<-1e-10 || grad[i]>1e-10) {
-      ind_grad_x[size] = i;
-      val_grad_x[size] = grad[i];
-      size++;
-    }
-  }
-  delete[] AA_dd_x;
-  delete[] grad;
+  std::cerr << "Not implemented yet." << std::endl;
+  throw std::exception();
+  // int n = A_->getNumCols();
+  // // (A^TA-dd^T)x
+  // double * AA_dd_x = new double[n];
+  // double * grad = new double[n];
+  // ind_grad_x = new int[n];
+  // val_grad_x = new double[n];
+  // cblas_dgemv(CblasColMajor, CblasTrans, n, n, 1.0, AA_dd_, n, x_hat, 1, 0.0, AA_dd_x, 1);
+  // for (int i=0; i<n; ++i ) {
+  //   grad[i] = AA_dd_x[i] + h_*dense_d_[i]-Ab_[i];
+  // }
+  // size = 0;
+  // for (int i=0; i<n; ++i) {
+  //   if (grad[i]<-1e-10 || grad[i]>1e-10) {
+  //     ind_grad_x[size] = i;
+  //     val_grad_x[size] = grad[i];
+  //     size++;
+  //   }
+  // }
+  // delete[] AA_dd_x;
+  // delete[] grad;
 }
 
 double ScaledCone::compute_rhs(double const * point, int size,
