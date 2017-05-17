@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Lehigh University.
+# Copyright (C) 2015-2017 Lehigh University.
 # All Rights Reserved.
 # This file is distributed under the Eclipse Public License.
 

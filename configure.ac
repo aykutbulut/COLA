@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Lehigh University.
+# Copyright (C) 2015-2017 Lehigh University.
 # All Rights Reserved.
 # This file is distributed under the Eclipse Public License.
 
@@ -15,7 +15,7 @@ AC_COPYRIGHT([
 /*                                                                           */
 /* Cola is developed by Aykut Bulut (aykutblt@gmail.com)                     */
 /*                                                                           */
-/* (c) Copyright 2015 Lehigh University. All Rights Reserved.                */
+/* (c) Copyright 2017 Lehigh University. All Rights Reserved.                */
 /*                                                                           */
 /* This software is licensed under the Eclipse Public License. Please see    */
 /* accompanying file for terms.                                              */
