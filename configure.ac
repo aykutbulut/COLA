@@ -8,7 +8,7 @@
 #                       Names and other basic things                        #
 #############################################################################
 AC_PREREQ(2.59)
-AC_INIT([Cola],[0.1],[https://github.com/aykutbulut/COLA/issues/new])
+AC_INIT([Cola],[1.0.0],[https://github.com/aykutbulut/COLA/issues/new])
 
 AC_COPYRIGHT([
 /*===========================================================================*/
